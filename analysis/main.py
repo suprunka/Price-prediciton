@@ -250,6 +250,7 @@ def randmizedSearchCV():
 #TODO manualne usuwanie outlierów
 #TODO stworzenie nowych zmiennych które mogą mieć wpływ
 
+
 def gridSearchCV():
     param_grid = [
         # try 12 (3×4) combinations of hyperparameters
