@@ -24,6 +24,7 @@ from scipy.stats import randint
 from sklearn.pipeline import make_pipeline
 from sklearn.metrics import make_scorer
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.model_selection import StratifiedShuffleSplit
 
 
 # Where to save the figures
@@ -43,7 +44,7 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 now = datetime.datetime.now()
 
 
-housing = pd.read_csv(r'house.csv')
+housing = pd.read_csv('house.csv')
 #Constant values
 valueOfSqM = 10.76
 numberOfBins = 4
@@ -71,6 +72,8 @@ maximum = housing['price'].max()/divider
 minimum = housing['price'].min()/divider
 
 #Creating bins using the price category
+
+
 def create_bins(maximum, minimum):
     x= [maximum+1]
     difference = (maximum-minimum)/numberOfBins
@@ -81,11 +84,12 @@ def create_bins(maximum, minimum):
             x.append(int((minimum + (difference * i))))
     x.sort()
     return x
-housing['price_cat'] = pd.cut(housing['price']/divider, bins= create_bins(maximum, minimum), labels = [1,2,3,4])
 
+
+housing['price_cat'] = pd.cut(housing['price']/divider, bins=create_bins(maximum, minimum), labels=[1, 2, 3, 4])
 #Spliting data in train and test sets
 split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
-for train_index, test_index in split.split(housing, housing["price_cat"]):
+for train_index, test_index in split.split(housing, housing['price_cat']):
     strat_train_set = housing.loc[train_index]
     strat_test_set = housing.loc[test_index]
 
@@ -342,6 +346,15 @@ def add_additional_attributes(data):
     data.loc[data.all_rooms== 0, 'all_rooms'] = 1
     data['avg_room_size'] = data['sqm_living']/ data['all_rooms']
     data['avg_floor_sq'] = data['sqm_above'] / data['floors']
+    x = data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values(by='price',
+                                                                                              ascending=False)
+    x['zipcode_cat'] = 0
+    x['zipcode_cat'] = np.where(x['price'] > 1000000, 3, x['zipcode_cat'])
+
+    x['zipcode_cat'] = np.where(x['price'].between(750000, 1000000), 2, x['zipcode_cat'])
+    x['zipcode_cat'] = np.where(x['price'].between(500000, 750000), 1, x['zipcode_cat'])
+    x.drop('price', axis=1)
+    data = pd.merge(x, data, on=['zipcode'])
     return data
 
 def transform_data(data):
@@ -366,6 +379,10 @@ def get_labels(data):
 housing_prepared = transform_data(housing)
 housing_labels = get_labels((housing))
 
+
+
+
+
 # #Select and train a model
 #
 def display_scores(scores):
@@ -386,9 +403,9 @@ def display_scores(scores):
 # lin_mse = mean_squared_error(housing_labels, housing_predictions)
 # lin_rmse = np.sqrt(lin_mse)
 #
-#
-#
-#
+
+
+
 # tree_reg = DecisionTreeRegressor(random_state=42)
 # tree_reg.fit(housing_prepared, housing_labels)
 #
@@ -401,7 +418,7 @@ def display_scores(scores):
 # tree_rmse_scores = np.sqrt(-scores)
 #
 # display_scores(tree_rmse_scores)
-#
+
 #
 
 
@@ -415,9 +432,13 @@ scoresRandomForestRegression =cross_val_score(forest_reg, housing_prepared, hous
 rforest_rmse_scores = np.sqrt(-scoresRandomForestRegression)
 display_scores(rforest_rmse_scores)
 
-
-
-
+param_grid = [
+    # try 12 (3×4) combinations of hyperparameters
+    {'n_estimators': [3, 10, 30], 'max_features': [2, 4, 6, 8]},
+    # then try 6 (2×3) combinations with bootstrap set as False
+    {'bootstrap': [False], 'n_estimators': [3, 10], 'max_features': [2, 3, 4]},
+ ]
+#
 # svm_reg = SVR(kernel="rbf")
 # svm_reg.fit(housing_prepared, housing_labels)
 # housing_predictions = svm_reg.predict(housing_prepared)
@@ -432,12 +453,7 @@ display_scores(rforest_rmse_scores)
 #
 #
 #
- param_grid = [
-     # try 12 (3×4) combinations of hyperparameters
-     {'n_estimators': [3, 10, 30], 'max_features': [2, 4, 6, 8]},
-     # then try 6 (2×3) combinations with bootstrap set as False
-     {'bootstrap': [False], 'n_estimators': [3, 10], 'max_features': [2, 3, 4]},
-   ]
+
 
  # depths = np.arange(1, 21)
  # num_leafs = [1, 5, 10, 20, 50, 100]
@@ -452,32 +468,32 @@ display_scores(rforest_rmse_scores)
 #  #    print(np.sqrt(-mean_score), params)
 
 '''
-# <editor-fold>
-# forest_reg = RandomForestRegressor(random_state=42)
-# grid_search = GridSearchCV(forest_reg, param_grid, cv=5,
-#                            scoring='neg_mean_squared_error', return_train_score=True)
-#  grid_search.fit(housing_prepared, housing_labels)
-#  cvres = grid_search.cv_results_
-#  for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
-#      print(np.sqrt(-mean_score), params)
-#  print("#########")
-# </editor-fold>
-# 
-# 
-# <editor-fold>
-#  param_distribs = {
-#          'n_estimators': randint(low=1, high=200),
-#          'max_features': randint(low=1, high=8),
-#      }
-# 
-#  forest_reg = RandomForestRegressor(random_state=42)
-#  rnd_search = RandomizedSearchCV(forest_reg, param_distributions=param_distribs,
-#                                  n_iter=10, cv=5, scoring='neg_mean_squared_error', random_state=42)
-#  rnd_search.fit(housing_prepared, housing_labels)
-#  cvres = rnd_search.cv_results_
-#  for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
-#      print(np.sqrt(-mean_score), params)
-#  </editor-fold
+<editor-fold>
+forest_reg = RandomForestRegressor(random_state=42)
+grid_search = GridSearchCV(forest_reg, param_grid, cv=5,
+                           scoring='neg_mean_squared_error', return_train_score=True)
+ grid_search.fit(housing_prepared, housing_labels)
+ cvres = grid_search.cv_results_
+ for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
+     print(np.sqrt(-mean_score), params)
+ print("#########")
+</editor-fold>
+
+
+<editor-fold>
+ param_distribs = {
+         'n_estimators': randint(low=1, high=200),
+         'max_features': randint(low=1, high=8),
+     }
+
+ forest_reg = RandomForestRegressor(random_state=42)
+ rnd_search = RandomizedSearchCV(forest_reg, param_distributions=param_distribs,
+                                 n_iter=10, cv=5, scoring='neg_mean_squared_error', random_state=42)
+ rnd_search.fit(housing_prepared, housing_labels)
+ cvres = rnd_search.cv_results_
+ for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
+     print(np.sqrt(-mean_score), params)
+ </editor-fold>
 
 
 '''
