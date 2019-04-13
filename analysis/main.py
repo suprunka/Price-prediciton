@@ -343,7 +343,7 @@ housing_labels = strat_train_set["price"].copy()
 
 def add_additional_attributes(data):
     data['all_rooms'] = data['bathrooms'] + data['bedrooms']
-    data.loc[data.all_rooms== 0, 'all_rooms'] = 1
+    data.loc[data.all_rooms == 0, 'all_rooms'] = 1
     data['avg_room_size'] = data['sqm_living']/ data['all_rooms']
     data['avg_floor_sq'] = data['sqm_above'] / data['floors']
     x = data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values(by='price',
@@ -353,7 +353,7 @@ def add_additional_attributes(data):
 
     x['zipcode_cat'] = np.where(x['price'].between(750000, 1000000), 2, x['zipcode_cat'])
     x['zipcode_cat'] = np.where(x['price'].between(500000, 750000), 1, x['zipcode_cat'])
-    x.drop('price', axis=1)
+   # x=x.drop('price', axis=1)
     data = pd.merge(x, data, on=['zipcode'])
     return data
 
@@ -424,13 +424,13 @@ def display_scores(scores):
 
 
 
-forest_reg = RandomForestRegressor(n_estimators=10, random_state=42)
-forest_reg.fit(housing_prepared, housing_labels)
-housing_predictions = forest_reg.predict(housing_prepared)
-forest_mse = mean_squared_error(housing_labels, housing_predictions)
-scoresRandomForestRegression =cross_val_score(forest_reg, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
-rforest_rmse_scores = np.sqrt(-scoresRandomForestRegression)
-display_scores(rforest_rmse_scores)
+# forest_reg = RandomForestRegressor(n_estimators=10, random_state=42)
+# forest_reg.fit(housing_prepared, housing_labels)
+# housing_predictions = forest_reg.predict(housing_prepared)
+# forest_mse = mean_squared_error(housing_labels, housing_predictions)
+# scoresRandomForestRegression =cross_val_score(forest_reg, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
+# rforest_rmse_scores = np.sqrt(-scoresRandomForestRegression)
+# display_scores(rforest_rmse_scores)
 
 param_grid = [
     # try 12 (3×4) combinations of hyperparameters
@@ -439,14 +439,14 @@ param_grid = [
     {'bootstrap': [False], 'n_estimators': [3, 10], 'max_features': [2, 3, 4]},
  ]
 #
-# svm_reg = SVR(kernel="rbf")
-# svm_reg.fit(housing_prepared, housing_labels)
-# housing_predictions = svm_reg.predict(housing_prepared)
-# svm_mse = mean_squared_error(housing_labels, housing_predictions)
-# svm_rmse = np.sqrt(svm_mse)
-# scoresSVR =cross_val_score(svm_reg, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
-# svr_scores = np.sqrt(-scoresSVR)
-# display_scores(svr_scores)
+svm_reg = SVR(kernel="rbf")
+svm_reg.fit(housing_prepared, housing_labels)
+housing_predictions = svm_reg.predict(housing_prepared)
+svm_mse = mean_squared_error(housing_labels, housing_predictions)
+svm_rmse = np.sqrt(svm_mse)
+scoresSVR =cross_val_score(svm_reg, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
+svr_scores = np.sqrt(-scoresSVR)
+display_scores(svr_scores)
 
 
 #
