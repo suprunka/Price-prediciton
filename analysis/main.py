@@ -155,7 +155,7 @@ def transform_data(data):
     data_no_duplicates = data_connected.drop_duplicates(['id'])
     data_deleted_columns = data_no_duplicates.drop(['bathrooms', 'bedrooms', 'floors'], axis=1)
     cols = [col for col in data_deleted_columns.columns if col not in ['price', 'id']]
-    data_scaled = StandardScaler().fit_transform(data_no_duplicates[cols])
+    data_scaled = MinMaxScaler().fit_transform(data_no_duplicates[cols])
     return data_scaled
 
 
@@ -285,7 +285,7 @@ def lassoSearch():
 
 
 
-cvres = randmizedSearchCV()
+cvres = gridSearchCV()
 for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
     print(np.sqrt(-mean_score), params)
 
