@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from pandas import DataFrame
 import datetime
 import os
-from sklearn import metrics
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 import seaborn as sns
@@ -25,8 +24,6 @@ from scipy.stats import randint
 from sklearn.pipeline import make_pipeline
 from sklearn.metrics import make_scorer
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn import linear_model
-from sklearn import neighbors
 
 
 #AKTUALIZACJA LOL
@@ -349,22 +346,15 @@ def add_additional_attributes(data):
     data['avg_room_size'] = data['sqm_living']/ data['all_rooms']
     data['avg_floor_sq'] = data['sqm_above'] / data['floors']
     data['was_seen'] = data.loc[data.view > 0, 'was_seen'] = 1
-    data['zipcode_cat'] = 0
-    data['zipcode_cat'] = np.where(data['price'] > 1000000, 3, data['zipcode_cat'])
+    x = data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values(by='price',
+                                                                                           ascending=False)
+    x['zipcode_cat'] = 0
+    x['zipcode_cat'] = np.where(x['price'] > 1000000, 3, x['zipcode_cat'])
 
-    data['zipcode_cat'] = np.where(data['price'].between(750000, 1000000), 2, data['zipcode_cat'])
-    data['zipcode_cat'] = np.where(data['price'].between(500000, 750000), 1, data['zipcode_cat'])
-    data=data.drop('zipcode', axis=1)
-
-    # x = data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values(by='price',
-    #                                                                                        ascending=False)
-    # x['zipcode_cat'] = 0
-    # x['zipcode_cat'] = np.where(x['price'] > 1000000, 3, x['zipcode_cat'])
-    #
-    # x['zipcode_cat'] = np.where(x['price'].between(750000, 1000000), 2, x['zipcode_cat'])
-    # x['zipcode_cat'] = np.where(x['price'].between(500000, 750000), 1, x['zipcode_cat'])
+    x['zipcode_cat'] = np.where(x['price'].between(750000, 1000000), 2, x['zipcode_cat'])
+    x['zipcode_cat'] = np.where(x['price'].between(500000, 750000), 1, x['zipcode_cat'])
     # x=x.drop('price', axis=1)
-    # data = pd.merge(x, data, on=['zipcode'])
+    data = pd.merge(x, data, on=['zipcode'])
     return data
 
 def transform_data(data):
@@ -391,16 +381,10 @@ housing_labels = get_labels((housing))
 
 # #Select and train a model
 #
-def display_scores(scores, model):
-    print(model)
+def display_scores(scores):
     print("Scores:", scores)
     print("Mean:", scores.mean())
     print("Standard deviation:", scores.std())
-    print('')
-
-
-
-
 
 
 
@@ -417,26 +401,20 @@ def display_scores(scores, model):
 #
 #
 #
-model_ridge=linear_model.Ridge()
-model_ridge.fit(housing_prepared,housing_labels)
-housing_predictions=model_ridge.predict(housing_prepared)
-scores = cross_val_score(model_ridge, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
-model_ridge_rmse = np.sqrt(-scores)
-display_scores(model_ridge_rmse, 'ridge model')
-
-tree_reg = DecisionTreeRegressor(random_state=42)
-tree_reg.fit(housing_prepared, housing_labels)
-
-housing_predictions = tree_reg.predict(housing_prepared)
-tree_mse = mean_squared_error(housing_labels, housing_predictions)
-tree_rmse = np.sqrt(tree_mse)
-
-
-scores = cross_val_score(tree_reg, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
-tree_rmse_scores = np.sqrt(-scores)
-
-display_scores(tree_rmse_scores, 'DecisionTreeRegressor')
-
+#
+# tree_reg = DecisionTreeRegressor(random_state=42)
+# tree_reg.fit(housing_prepared, housing_labels)
+#
+# housing_predictions = tree_reg.predict(housing_prepared)
+# tree_mse = mean_squared_error(housing_labels, housing_predictions)
+# tree_rmse = np.sqrt(tree_mse)
+#
+#
+# scores = cross_val_score(tree_reg, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
+# tree_rmse_scores = np.sqrt(-scores)
+#
+# display_scores(tree_rmse_scores)
+#
 
 
 
@@ -446,18 +424,7 @@ housing_predictions = forest_reg.predict(housing_prepared)
 forest_mse = mean_squared_error(housing_labels, housing_predictions)
 scoresRandomForestRegression =cross_val_score(forest_reg, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
 rforest_rmse_scores = np.sqrt(-scoresRandomForestRegression)
-display_scores(rforest_rmse_scores,'RandomForestRegressor' )
-
-# KNN Regression
-n_neighbors=5
-knn=neighbors.KNeighborsRegressor(n_neighbors,weights='uniform')
-knn.fit(housing_prepared,housing_labels)
-housing_predictions=knn.predict(housing_prepared)
-scoresKNeighborsRegressor=cross_val_score(knn, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
-knn_rmse_scores = np.sqrt(-scoresKNeighborsRegressor)
-display_scores(knn_rmse_scores,'KNeighborsRegressor' )
-
-
+display_scores(rforest_rmse_scores)
 param_grid = [
     # try 12 (3×4) combinations of hyperparameters
     {'n_estimators': [3, 10, 30], 'max_features': [2, 4, 6, 8]},
@@ -472,19 +439,13 @@ param_grid = [
 # svm_rmse = np.sqrt(svm_mse)
 # scoresSVR =cross_val_score(svm_reg, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
 # svr_scores = np.sqrt(-scoresSVR)
-# display_scores(svr_scores, 'SVR')
-
-#BayesianRidge
-bayesian_ridge = linear_model.BayesianRidge()
-bayesian_ridge.fit(housing_prepared,housing_labels)
-housing_predictions=bayesian_ridge.predict(housing_prepared)
-bayesian_ridge_scores =cross_val_score(bayesian_ridge, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
-br_scores = np.sqrt(-bayesian_ridge_scores)
-display_scores(br_scores, 'BayesianRidge')
+# display_scores(svr_scores)
 
 
-
-
+#
+#
+#
+#
 
 
  # depths = np.arange(1, 21)
