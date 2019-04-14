@@ -13,7 +13,7 @@ from sklearn.preprocessing import OneHotEncoder
 from scipy.stats import mstats
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestRegressor
@@ -24,6 +24,9 @@ from scipy.stats import randint
 from sklearn.pipeline import make_pipeline
 from sklearn.metrics import make_scorer
 from sklearn.neighbors import KNeighborsRegressor
+
+
+#AKTUALIZACJA LOL
 
 
 # Where to save the figures
@@ -342,6 +345,7 @@ def add_additional_attributes(data):
     data.loc[data.all_rooms== 0, 'all_rooms'] = 1
     data['avg_room_size'] = data['sqm_living']/ data['all_rooms']
     data['avg_floor_sq'] = data['sqm_above'] / data['floors']
+    virt['was_seen'] = virt.loc[virt.view > 0, 'was_seen'] = 1
     return data
 
 def transform_data(data):
@@ -350,7 +354,7 @@ def transform_data(data):
     data_no_duplicates = data_connected.drop_duplicates(['id'])
     data_deleted_columns = data_no_duplicates.drop(['bathrooms', 'bedrooms', 'floors'], axis=1)
     cols = [col for col in data_deleted_columns.columns if col not in ['price', 'id']]
-    data_scaled = StandardScaler().fit_transform(data_no_duplicates[cols])
+    data_scaled = MinMaxScaler().fit_transform(data_no_duplicates[cols])
     return data_scaled
 
 
@@ -402,8 +406,6 @@ def display_scores(scores):
 #
 # display_scores(tree_rmse_scores)
 #
-#
-
 
 
 
@@ -414,9 +416,12 @@ forest_mse = mean_squared_error(housing_labels, housing_predictions)
 scoresRandomForestRegression =cross_val_score(forest_reg, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
 rforest_rmse_scores = np.sqrt(-scoresRandomForestRegression)
 display_scores(rforest_rmse_scores)
-
-
-
+param_grid = [
+    # try 12 (3×4) combinations of hyperparameters
+    {'n_estimators': [3, 10, 30], 'max_features': [2, 4, 6, 8]},
+    # then try 6 (2×3) combinations with bootstrap set as False
+    {'bootstrap': [False], 'n_estimators': [3, 10], 'max_features': [2, 3, 4]},
+]
 
 # svm_reg = SVR(kernel="rbf")
 # svm_reg.fit(housing_prepared, housing_labels)
@@ -432,12 +437,7 @@ display_scores(rforest_rmse_scores)
 #
 #
 #
- param_grid = [
-     # try 12 (3×4) combinations of hyperparameters
-     {'n_estimators': [3, 10, 30], 'max_features': [2, 4, 6, 8]},
-     # then try 6 (2×3) combinations with bootstrap set as False
-     {'bootstrap': [False], 'n_estimators': [3, 10], 'max_features': [2, 3, 4]},
-   ]
+
 
  # depths = np.arange(1, 21)
  # num_leafs = [1, 5, 10, 20, 50, 100]
