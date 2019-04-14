@@ -345,7 +345,16 @@ def add_additional_attributes(data):
     data.loc[data.all_rooms== 0, 'all_rooms'] = 1
     data['avg_room_size'] = data['sqm_living']/ data['all_rooms']
     data['avg_floor_sq'] = data['sqm_above'] / data['floors']
-    virt['was_seen'] = virt.loc[virt.view > 0, 'was_seen'] = 1
+    data['was_seen'] = data.loc[data.view > 0, 'was_seen'] = 1
+    x = data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values(by='price',
+                                                                                           ascending=False)
+    x['zipcode_cat'] = 0
+    x['zipcode_cat'] = np.where(x['price'] > 1000000, 3, x['zipcode_cat'])
+
+    x['zipcode_cat'] = np.where(x['price'].between(750000, 1000000), 2, x['zipcode_cat'])
+    x['zipcode_cat'] = np.where(x['price'].between(500000, 750000), 1, x['zipcode_cat'])
+    # x=x.drop('price', axis=1)
+    data = pd.merge(x, data, on=['zipcode'])
     return data
 
 def transform_data(data):
