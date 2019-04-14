@@ -345,7 +345,7 @@ def add_additional_attributes(data):
     data.loc[data.all_rooms== 0, 'all_rooms'] = 1
     data['avg_room_size'] = data['sqm_living']/ data['all_rooms']
     data['avg_floor_sq'] = data['sqm_above'] / data['floors']
-    virt['was_seen'] = virt.loc[virt.view > 0, 'was_seen'] = 1
+    data['was_seen'] = data.loc[data.view > 0, 'was_seen'] = 1
     return data
 
 def transform_data(data):
