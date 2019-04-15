@@ -218,6 +218,7 @@ def add_additional_attributes(data):
     data['zipcode_cat'] = np.where(data['price'] > 1000000, 3, data['zipcode_cat'])
     data['zipcode_cat'] = np.where(data['price'].between(750000, 1000000), 2, data['zipcode_cat'])
     data['zipcode_cat'] = np.where(data['price'].between(500000, 750000), 1, data['zipcode_cat'])
+    data = data.drop('zipcode', axis = 1)
     data['avg_room_size'] = stats.boxcox(np.asanyarray(data[['avg_room_size']].values))[0]
     data['sqm_above'] = stats.boxcox(np.asanyarray(data[['sqm_above']].values))[0]
     data['sqm_lot'] = stats.boxcox(np.asanyarray(data[['sqm_lot']].values))[0]
@@ -231,7 +232,7 @@ def transform_data(data):
     data_connected = pd.merge(data_filtered, data_additional_attributes, how='inner',
                               on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living'])
     data_no_duplicates = data_connected.drop_duplicates(['id'])
-    data_deleted_columns = data_no_duplicates.drop(['bathrooms', 'zipcode', 'view', 'bedrooms', 'floors'], axis=1)
+    data_deleted_columns = data_no_duplicates.drop(['bathrooms',  'view', 'bedrooms', 'floors'], axis=1)
     cols = [col for col in data_deleted_columns.columns if col not in ['price', 'id']]
     data_scaled = MinMaxScaler().fit_transform(data_no_duplicates[cols])
     return data_scaled
@@ -255,9 +256,11 @@ housing_labels = get_labels((housing))
 # #Select and train a model
 #
 def display_scores(scores, model):
+    print(model)
     print("Scores:", scores)
     print("Mean:", scores.mean())
     print("Standard deviation:", scores.std())
+    print('')
 
 
 def randmizedSearchCV():
@@ -289,14 +292,8 @@ def gridSearchCV_KNN():
 #LinearRegression
 lin_reg = LinearRegression()
 lin_reg.fit(housing_prepared, housing_labels)
-
-some_data = housing
-some_labels = housing_labels
-some_data_prepared = transform_data(transform_categorital(some_data))
-
 housing_predictions = lin_reg.predict(housing_prepared)
-lin_mse = mean_squared_error(housing_labels, housing_predictions)
-lin_rmse = np.sqrt(lin_mse, 'LinearRegression')
+
 
 #BayesianRidge
 bayesian_ridge = linear_model.BayesianRidge()
