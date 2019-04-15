@@ -21,8 +21,11 @@ from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
 from scipy.stats import randint
-from sklearn.pipeline import make_pipeline
-from sklearn.metrics import make_scorer
+from sklearn import linear_model
+from sklearn import neighbors
+from scipy import stats
+from scipy.special import boxcox1p
+from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsRegressor
 
 
@@ -106,154 +109,18 @@ virt['avg_room_size'] = virt['sqm_living']/ virt['all_rooms']
 virt['avg_floor_sq'] = virt['sqm_above'] / virt['floors']
 virt['was_seen'] = virt.loc[virt.view > 0, 'was_seen'] = 1
 
-#virt['yearsFromLastRenovation'] =  virt['yr_renovated'].apply(lambda x: int(now.year - x) if x > 0 else np.nan)
 corr_matrix = virt.corr()
 
-#Create diagrams for most promising correlation with price
-#Most 4: sqm_lot, sqm_living, grade, sqm_above, avgRoomSize
-#<editor-fold desc='sqm_basement_ plot'>
-sns.boxplot(x=virt['sqm_basement'])
 
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['sqm_basement'], virt['price'])
-ax.set_xlabel('Square meters basement')
-ax.set_ylabel('House price')
+plt.hist(virt['sqm_living'], bins = 10)
 plt.show()
-#</editor-fold>
-'''
-#<editor-fold desc='long plot'>
-sns.boxplot(x=virt['long'])
 
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['long'], virt['price'])
-ax.set_xlabel('Long')
-ax.set_ylabel('House price')
+plt.clf()
+transform = np.asanyarray(virt[['sqm_living']].values)
+dft = stats.boxcox(transform)[0]
+plt.hist(dft, bins=10, color='red')
 plt.show()
-#</editor-fold>
-#<editor-fold desc='lat plot'>
-sns.boxplot(x=virt['lat'])
 
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['lat'], virt['price'])
-ax.set_xlabel('Latitude')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='zipcode plot'>
-sns.boxplot(x=virt['zipcode'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['zipcode'], virt['price'])
-ax.set_xlabel('Zipcode')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='yr_renovated plot'>
-sns.boxplot(x=virt['yr_renovated'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['yr_renovated'], virt['price'])
-ax.set_xlabel('Year renovated')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='yr_built plot'>
-sns.boxplot(x=virt['yr_built'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['yr_built'], virt['price'])
-ax.set_xlabel('Year built')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='bedrooms plot'>
-sns.boxplot(x=virt['bedrooms'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['bedrooms'], virt['price'])
-ax.set_xlabel('No. bedrooms')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='floors plot'>
-sns.boxplot(x=virt['floors'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['floors'], virt['price'])
-ax.set_xlabel('No. floors')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='waterfront'>
-sns.boxplot(x=virt['waterfront'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['waterfront'], virt['price'])
-ax.set_xlabel('Waterfront')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='bathrooms'>
-sns.boxplot(x=virt['bathrooms'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['bathrooms'], virt['price'])
-ax.set_xlabel('No. bathrooms')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='condition'>
-sns.boxplot(x=virt['condition'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['condition'], virt['price'])
-ax.set_xlabel('Condition')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='sqm_lot plot'>
-sns.boxplot(x=virt['sqm_lot'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['sqm_lot'], virt['price'])
-ax.set_xlabel('Square meters of lot')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='sqm_living'>
-sns.boxplot(x=virt['sqm_living'])
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['sqm_living'], virt['price'])
-ax.set_xlabel('House square maters living')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='grade'>
-sns.boxplot(x=virt['grade'])
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['grade'], virt['price'])
-ax.set_xlabel('House grade')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='sqm_above'>
-sns.boxplot(x=virt['sqm_above'])
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['sqm_above'], virt['price'])
-ax.set_xlabel('House square maters without basement')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='avgRoomSize'>
-sns.boxplot(x=virt['avgRoomSize'])
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['avgRoomSize'], virt['price'])
-ax.set_xlabel('Average size of room')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-
-'''
 
 
 virt_num = virt
@@ -346,12 +213,11 @@ def add_additional_attributes(data):
     data['avg_room_size'] = data['sqm_living']/ data['all_rooms']
     data['avg_floor_sq'] = data['sqm_above'] / data['floors']
     data['was_seen'] = data.loc[data.view > 0, 'was_seen'] = 1
-    x = data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values()
+    x = data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values(by='price', ascending=False)
     data['zipcode_cat'] = 0
     data['zipcode_cat'] = np.where(data['price'] > 1000000, 3, data['zipcode_cat'])
     data['zipcode_cat'] = np.where(data['price'].between(750000, 1000000), 2, data['zipcode_cat'])
     data['zipcode_cat'] = np.where(data['price'].between(500000, 750000), 1, data['zipcode_cat'])
-    data=data.drop('zipcode', axis=1)
     data['avg_room_size'] = stats.boxcox(np.asanyarray(data[['avg_room_size']].values))[0]
     data['sqm_above'] = stats.boxcox(np.asanyarray(data[['sqm_above']].values))[0]
     data['sqm_lot'] = stats.boxcox(np.asanyarray(data[['sqm_lot']].values))[0]
@@ -372,12 +238,12 @@ def transform_data(data):
 
 
 def get_labels(data):
-    ata_additional_attributes = add_additional_attributes(data)
+    data_additional_attributes = add_additional_attributes(data)
     data_filtered = get_rid_of_outliers(data_additional_attributes)[
         ['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living']]
     data_connected = pd.merge(data_filtered, data_additional_attributes, how='inner',
                               on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living'])
-
+    data_no_duplicates = data_connected.drop_duplicates(['id'])
     data_prepared = data_no_duplicates['price']
     to_return = data_prepared.values
     return to_return
@@ -422,7 +288,7 @@ def gridSearchCV_KNN():
 
 #LinearRegression
 lin_reg = LinearRegression()
-lin_reg.fit(housing_prepared.values, housing_labels.values)
+lin_reg.fit(housing_prepared, housing_labels)
 
 some_data = housing
 some_labels = housing_labels
