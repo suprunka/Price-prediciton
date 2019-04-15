@@ -1,31 +1,23 @@
 import numpy as np
 import pandas as pd
-from matplotlib import *
 import matplotlib.pyplot as plt
-from pandas import DataFrame
 import datetime
 import os
-from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
-import seaborn as sns
 from sklearn.model_selection import StratifiedShuffleSplit
-from sklearn.preprocessing import OneHotEncoder
-from scipy.stats import mstats
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
 from scipy.stats import randint
-from sklearn.pipeline import make_pipeline
-from sklearn.metrics import make_scorer
+from sklearn import linear_model
+from sklearn import neighbors
+from scipy import stats
+from scipy.special import boxcox1p
+from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsRegressor
-
-
 #AKTUALIZACJA LOL
 
 
@@ -57,7 +49,7 @@ high = .95
 
 
 #<editor-fold desc='Droping unnecesary columns'>
-housing = housing.drop(["sqft_living15", "sqft_lot15", 'date'], axis=1)
+housing = housing.drop(["sqft_living15", "sqft_lot15", 'date', 'waterfront'], axis=1)
 #</editor-fold>
 #<editor-fold desc='Creating dolumns which represnet data in square meters'>
 housing['sqm_living'] = round(housing['sqft_living']/valueOfSqM)
@@ -84,6 +76,7 @@ def create_bins(maximum, minimum):
             x.append(int((minimum + (difference * i))))
     x.sort()
     return x
+
 housing['price_cat'] = pd.cut(housing['price']/divider, bins= create_bins(maximum, minimum), labels = [1,2,3,4])
 
 #Spliting data in train and test sets
@@ -98,6 +91,8 @@ for set_ in (strat_train_set, strat_test_set):
 
 
 housing = strat_train_set.copy()
+
+
 #Creating copy of dataset for virtualization
 virt = housing.copy()
 virt['all_rooms'] = virt['bathrooms'] + virt['bedrooms']
@@ -105,270 +100,61 @@ virt.loc[virt.all_rooms== 0, 'all_rooms'] = 1
 virt['avg_room_size'] = virt['sqm_living']/ virt['all_rooms']
 virt['avg_floor_sq'] = virt['sqm_above'] / virt['floors']
 virt['was_seen'] = virt.loc[virt.view > 0, 'was_seen'] = 1
-
-#virt['yearsFromLastRenovation'] =  virt['yr_renovated'].apply(lambda x: int(now.year - x) if x > 0 else np.nan)
 corr_matrix = virt.corr()
 
-#Create diagrams for most promising correlation with price
-#Most 4: sqm_lot, sqm_living, grade, sqm_above, avgRoomSize
-#<editor-fold desc='sqm_basement_ plot'>
-sns.boxplot(x=virt['sqm_basement'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['sqm_basement'], virt['price'])
-ax.set_xlabel('Square meters basement')
-ax.set_ylabel('House price')
+plt.hist(virt['sqm_living'], bins = 10)
 plt.show()
-#</editor-fold>
-'''
-#<editor-fold desc='long plot'>
-sns.boxplot(x=virt['long'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['long'], virt['price'])
-ax.set_xlabel('Long')
-ax.set_ylabel('House price')
+plt.clf()
+transform = np.asanyarray(virt[['sqm_living']].values)
+dft = stats.boxcox(transform)[0]
+plt.hist(dft, bins=10, color='red')
 plt.show()
-#</editor-fold>
-#<editor-fold desc='lat plot'>
-sns.boxplot(x=virt['lat'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['lat'], virt['price'])
-ax.set_xlabel('Latitude')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='zipcode plot'>
-sns.boxplot(x=virt['zipcode'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['zipcode'], virt['price'])
-ax.set_xlabel('Zipcode')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='yr_renovated plot'>
-sns.boxplot(x=virt['yr_renovated'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['yr_renovated'], virt['price'])
-ax.set_xlabel('Year renovated')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='yr_built plot'>
-sns.boxplot(x=virt['yr_built'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['yr_built'], virt['price'])
-ax.set_xlabel('Year built')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='bedrooms plot'>
-sns.boxplot(x=virt['bedrooms'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['bedrooms'], virt['price'])
-ax.set_xlabel('No. bedrooms')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='floors plot'>
-sns.boxplot(x=virt['floors'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['floors'], virt['price'])
-ax.set_xlabel('No. floors')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='waterfront'>
-sns.boxplot(x=virt['waterfront'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['waterfront'], virt['price'])
-ax.set_xlabel('Waterfront')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='bathrooms'>
-sns.boxplot(x=virt['bathrooms'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['bathrooms'], virt['price'])
-ax.set_xlabel('No. bathrooms')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='condition'>
-sns.boxplot(x=virt['condition'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['condition'], virt['price'])
-ax.set_xlabel('Condition')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='sqm_lot plot'>
-sns.boxplot(x=virt['sqm_lot'])
-
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['sqm_lot'], virt['price'])
-ax.set_xlabel('Square meters of lot')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='sqm_living'>
-sns.boxplot(x=virt['sqm_living'])
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['sqm_living'], virt['price'])
-ax.set_xlabel('House square maters living')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='grade'>
-sns.boxplot(x=virt['grade'])
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['grade'], virt['price'])
-ax.set_xlabel('House grade')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='sqm_above'>
-sns.boxplot(x=virt['sqm_above'])
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['sqm_above'], virt['price'])
-ax.set_xlabel('House square maters without basement')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-#<editor-fold desc='avgRoomSize'>
-sns.boxplot(x=virt['avgRoomSize'])
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(virt['avgRoomSize'], virt['price'])
-ax.set_xlabel('Average size of room')
-ax.set_ylabel('House price')
-plt.show()
-#</editor-fold>
-
-'''
-
-
-virt_num = virt
-
 
 #Getting rid of outliers
 def get_rid_of_outliers(num_data):
-    Q1 = virt_num.quantile(0.25)
-    Q3 = virt_num.quantile(0.75)
+    Q1 = num_data.quantile(0.25)
+    Q3 = num_data.quantile(0.75)
     IQR = Q3 - Q1
     return num_data[~((num_data < (Q1 - 1.5 * IQR)) |(num_data > (Q3 + 1.5 * IQR))).any(axis=1)]
 
-# filtered = get_rid_of_outliers(virt_num[['price', 'sqm_basement', 'sqm_above',
-#                                          'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living']])
-# corr_matrix_filtered = filtered.corr()
-#
-# '''
-# #<editor-fold desc='Filtered: sqm_basement'>
-# sns.boxplot(x=filtered['sqm_basement'])
-# fig, ax = plt.subplots(figsize=(16,8))
-# ax.scatter(filtered['sqm_basement'], filtered['price'])
-# ax.set_xlabel('Square meters of basement')
-# ax.set_ylabel('House price')
-# plt.show()
-# #</editor-fold>
-# #<editor-fold desc='Filtered: sqm_living'>
-# sns.boxplot(x=filtered['sqm_living'])
-# fig, ax = plt.subplots(figsize=(16,8))
-# ax.scatter(filtered['sqm_living'], filtered['price'])
-# ax.set_xlabel('House square maters living')
-# ax.set_ylabel('House price')
-# plt.show()
-# #</editor-fold>
-# #<editor-fold desc='Filtered: sqm_above'>
-# sns.boxplot(x=filtered['sqm_above'])
-# fig, ax = plt.subplots(figsize=(16,8))
-# ax.scatter(filtered['sqm_above'], filtered['price'])
-# ax.set_xlabel('House square meters above.')
-# ax.set_ylabel('House price')
-# plt.show()
-# #</editor-fold>
-# #<editor-fold desc='Filtered: sqm_lot'>
-# sns.boxplot(x=filtered['sqm_lot'])
-# fig, ax = plt.subplots(figsize=(16,8))
-# ax.scatter(filtered['sqm_lot'], filtered['price'])
-# ax.set_xlabel('House square maters lot')
-# ax.set_ylabel('House price')
-# plt.show()
-# #</editor-fold>
-# #<editor-fold desc='Filtered: bedrooms'>
-# sns.boxplot(x=filtered['bedrooms'])
-# fig, ax = plt.subplots(figsize=(16,8))
-# ax.scatter(filtered['bedrooms'], filtered['price'])
-# ax.set_xlabel('No. bedrooms')
-# ax.set_ylabel('House price')
-# plt.show()
-# #</editor-fold>
-# #<editor-fold desc='Filtered: bathrooms'>
-# sns.boxplot(x=filtered['bathrooms'])
-# fig, ax = plt.subplots(figsize=(16,8))
-# ax.scatter(filtered['bathrooms'], filtered['price'])
-# ax.set_xlabel('No. bathrooms')
-# ax.set_ylabel('House price')
-# plt.show()
-# #</editor-fold>
-#
-# '''
-# result = pd.merge(filtered, virt_num, how='inner', on=['price', 'sqm_basement', 'sqm_above',
-#                                          'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living'])
-# result_nd = DataFrame.drop_duplicates(result)
 
 
-#prepare for machine learning
-#housing = strat_train_set.drop(['id'], axis=1)
-housing_labels = strat_train_set["price"].copy()
-
-#Get only numeric values
-#housing_num = strat_train_set.drop("date", axis=1)
-#Distinguish housing categories for processing : get year and month
-
-
-# def transform_categorital(data):
-#     data_cat = pd.get_dummies(data['date'].apply(lambda x: x.replace(x, x[0:6])), prefix = 'date')
-#     return_data = pd.concat([data, data_cat], axis=1)
-#     return return_data.drop('date',axis=1)
 
 def add_additional_attributes(data):
     data['all_rooms'] = data['bathrooms'] + data['bedrooms']
     data.loc[data.all_rooms== 0, 'all_rooms'] = 1
     data['avg_room_size'] = data['sqm_living']/ data['all_rooms']
     data['avg_floor_sq'] = data['sqm_above'] / data['floors']
-    data['was_seen'] = data.loc[data.view > 0, 'was_seen'] = 1
-    x = data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values(by='price',
-                                                                                           ascending=False)
-    data['zipcode_cat'] = 0
-    data['zipcode_cat'] = np.where(data['price'] > 1000000, 3, data['zipcode_cat'])
-
-    data['zipcode_cat'] = np.where(data['price'].between(750000, 1000000), 2, data['zipcode_cat'])
-    data['zipcode_cat'] = np.where(data['price'].between(500000, 750000), 1, data['zipcode_cat'])
-    data=data.drop('price', axis=1)
+    data['was_seen'] = data['view'].apply(lambda x: 1 if x > 0 else 0)
+    x = data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values(by='price', ascending=False)
+    x['zipcode_cat'] = 0
+    x['zipcode_cat'] = np.where(x['price'] > 1000000, 3, x['zipcode_cat'])
+    x['zipcode_cat'] = np.where(x['price'].between(750000, 1000000), 2, x['zipcode_cat'])
+    x['zipcode_cat'] = np.where(x['price'].between(500000, 750000), 1, x['zipcode_cat'])
+    x= x.drop('price', axis=1)
+    data = pd.merge(x, data, on=['zipcode'])
+    data['avg_room_size'] = stats.boxcox(np.asanyarray(data[['avg_room_size']].values))[0]
+    data['sqm_above'] = stats.boxcox(np.asanyarray(data[['sqm_above']].values))[0]
+    data['sqm_lot'] = stats.boxcox(np.asanyarray(data[['sqm_lot']].values))[0]
+    data['sqm_living'] = stats.boxcox(np.asanyarray(data[['sqm_living']].values))[0]
     return data
+    #73529.99236662195
 
 def transform_data(data):
-    data_filtered = get_rid_of_outliers(add_additional_attributes(data)[['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living']])
-    data_connected = pd.merge(data_filtered, data, how='inner', on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living'])
+    data_additional_attributes = add_additional_attributes(data)
+    data_filtered = get_rid_of_outliers(data_additional_attributes)[['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living']]
+    data_connected = pd.merge(data_filtered, data_additional_attributes, how='inner', on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living'])
     data_no_duplicates = data_connected.drop_duplicates(['id'])
-    data_deleted_columns = data_no_duplicates.drop(['bathrooms', 'bedrooms', 'floors'], axis=1)
+    data_deleted_columns = data_no_duplicates.drop(['bathrooms', 'zipcode', 'view', 'bedrooms', 'floors'], axis=1)
     cols = [col for col in data_deleted_columns.columns if col not in ['price', 'id']]
     data_scaled = MinMaxScaler().fit_transform(data_no_duplicates[cols])
     return data_scaled
 
 
 def get_labels(data):
-    data_filtered = get_rid_of_outliers(add_additional_attributes(data)[['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms','sqm_living']])
-    data_connected = pd.merge(data_filtered, data, how='inner',on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms','bathrooms', 'sqm_living'])
+    data_additional_attributes = add_additional_attributes(data)
+    data_filtered = get_rid_of_outliers(data_additional_attributes)[['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms','sqm_living']]
+    data_connected = pd.merge(data_filtered, data_additional_attributes, how='inner',on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms','bathrooms', 'sqm_living'])
     data_no_duplicates = data_connected.drop_duplicates(['id'])
     data_prepared = data_no_duplicates['price']
     to_return = data_prepared.values
@@ -378,43 +164,72 @@ def get_labels(data):
 housing_prepared = transform_data(housing)
 housing_labels = get_labels((housing))
 
+
+
 # #Select and train a model
 #
 def display_scores(scores, model):
+    print("#####", model, "#####")
     print("Scores:", scores)
     print("Mean:", scores.mean())
     print("Standard deviation:", scores.std())
 
 
-#LinearRegression
-lin_reg = LinearRegression()
-lin_reg.fit(housing_prepared.values, housing_labels.values)
+def randmizedSearchCV():
+    param_distribs = {
+        'n_estimators': randint(low=1, high=200),
+        'max_features': randint(low=1, high=8),
+    }
 
-some_data = housing
-some_labels = housing_labels
-some_data_prepared = transform_data(transform_categorital(some_data))
+    forest_reg = RandomForestRegressor(random_state=42)
+    rnd_search = RandomizedSearchCV(forest_reg, param_distributions=param_distribs,
+                                    n_iter=10, cv=5, scoring='neg_mean_squared_error', random_state=42)
+    rnd_search.fit(housing_prepared, housing_labels)
+    cvres = rnd_search.cv_results_
+    for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
+        print(np.sqrt(-mean_score), params)
 
+def gridSearchCV_KNN():
+    knn = neighbors.KNeighborsClassifier()
+
+    parameters = {'n_neighbors':[4,5,6,7], 'leaf_size':[1,3,5],
+                  'algorithm':['auto', 'kd_tree'], 'n_jobs':[-1]}
+
+    model = GridSearchCV(knn, param_grid=parameters)
+    grid_result = model.fit(housing_prepared, housing_labels)
+    print('Best Score: ', grid_result.best_score_)
+    print('Best Params: ', grid_result.best_params_)
+
+
+# LinearRegression
+lin_reg = linear_model.LinearRegression()
+lin_reg.fit(housing_prepared, housing_labels)
 housing_predictions = lin_reg.predict(housing_prepared)
-lin_mse = mean_squared_error(housing_labels, housing_predictions)
-lin_rmse = np.sqrt(lin_mse, 'LinearRegression')
+scores = cross_val_score(lin_reg, housing_prepared, housing_labels,
+                                        scoring="neg_mean_squared_error", cv=10)
+linear_scores = np.sqrt(-scores)
+display_scores(linear_scores, 'Linear Regression')
 
-#BayesianRidge
+# BayesianRidge
 bayesian_ridge = linear_model.BayesianRidge()
-bayesian_ridge.fit(housing_prepared,housing_labels)
-housing_predictions=bayesian_ridge.predict(housing_prepared)
-bayesian_ridge_scores =cross_val_score(bayesian_ridge, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
+bayesian_ridge.fit(housing_prepared, housing_labels)
+housing_predictions = bayesian_ridge.predict(housing_prepared)
+bayesian_ridge_scores = cross_val_score(bayesian_ridge, housing_prepared, housing_labels,
+                                        scoring="neg_mean_squared_error", cv=10)
 br_scores = np.sqrt(-bayesian_ridge_scores)
-display_scores(br_scores, 'BayesianRidge')
+display_scores(br_scores, 'Bayesian Ridge')
 
-#Ridge
-model_ridge=linear_model.Ridge()
-model_ridge.fit(housing_prepared,housing_labels)
-housing_predictions=model_ridge.predict(housing_prepared)
+# Ridge
+model_ridge = linear_model.Ridge()
+model_ridge.fit(housing_prepared, housing_labels)
+housing_predictions = model_ridge.predict(housing_prepared)
 scores = cross_val_score(model_ridge, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
 model_ridge_rmse = np.sqrt(-scores)
-display_scores(model_ridge_rmse, 'ridge model')
+display_scores(model_ridge_rmse, 'Ridge Model')
 
-#DecisionTreeRegressor
+
+
+# DecisionTreeRegressor
 tree_reg = DecisionTreeRegressor(random_state=42)
 tree_reg.fit(housing_prepared, housing_labels)
 housing_predictions = tree_reg.predict(housing_prepared)
@@ -422,91 +237,31 @@ tree_mse = mean_squared_error(housing_labels, housing_predictions)
 tree_rmse = np.sqrt(tree_mse)
 scores = cross_val_score(tree_reg, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
 tree_rmse_scores = np.sqrt(-scores)
-display_scores(tree_rmse_scores, 'DecisionTreeRegressor')
+display_scores(tree_rmse_scores, 'Decision Tree Regressorr')
 
-#RandomForestRegressor
-forest_reg = RandomForestRegressor(n_estimators=10, random_state=42)
+
+
+# RandomForestRegressor
+forest_reg = RandomForestRegressor(n_estimators=50, random_state=42, max_features="auto", max_depth=100,
+                                   min_samples_leaf=4, bootstrap=True, min_impurity_decrease=100)
 forest_reg.fit(housing_prepared, housing_labels)
 housing_predictions = forest_reg.predict(housing_prepared)
 forest_mse = mean_squared_error(housing_labels, housing_predictions)
-scoresRandomForestRegression =cross_val_score(forest_reg, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
+scoresRandomForestRegression = cross_val_score(forest_reg, housing_prepared, housing_labels,
+                                               scoring="neg_mean_squared_error", cv=10)
 rforest_rmse_scores = np.sqrt(-scoresRandomForestRegression)
-display_scores(rforest_rmse_scores,'RandomForestRegressor' )
+display_scores(rforest_rmse_scores, 'Random Forest Regressor')
+
+
 
 # KNN Regression
-n_neighbors=5
-knn=neighbors.KNeighborsRegressor(n_neighbors,weights='uniform')
-knn.fit(housing_prepared,housing_labels)
-housing_predictions=knn.predict(housing_prepared)
-scoresKNeighborsRegressor=cross_val_score(knn, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
+
+knn = neighbors.KNeighborsRegressor(n_neighbors= 7, weights='uniform', algorithm="auto", leaf_size=1, n_jobs=-1)
+knn.fit(housing_prepared, housing_labels)
+housing_predictions = knn.predict(housing_prepared)
+scoresKNeighborsRegressor = cross_val_score(knn, housing_prepared, housing_labels, scoring="neg_mean_squared_error",
+                                            cv=10)
 knn_rmse_scores = np.sqrt(-scoresKNeighborsRegressor)
-display_scores(knn_rmse_scores,'KNeighborsRegressor' )
+display_scores(knn_rmse_scores, 'KNeighborsRegressor')
 
 
-param_grid = [
-    # try 12 (3×4) combinations of hyperparameters
-    {'n_estimators': [3, 10, 30], 'max_features': [2, 4, 6, 8]},
-    # then try 6 (2×3) combinations with bootstrap set as False
-    {'bootstrap': [False], 'n_estimators': [3, 10], 'max_features': [2, 3, 4]},
-]
-
-# svm_reg = SVR(kernel="rbf")
-# svm_reg.fit(housing_prepared, housing_labels)
-# housing_predictions = svm_reg.predict(housing_prepared)
-# svm_mse = mean_squared_error(housing_labels, housing_predictions)
-# svm_rmse = np.sqrt(svm_mse)
-# scoresSVR =cross_val_score(svm_reg, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=10)
-# svr_scores = np.sqrt(-scoresSVR)
-# display_scores(svr_scores, 'SVR')
-
-
-
-
-#
-#
-#
-#
-
-
- # depths = np.arange(1, 21)
- # num_leafs = [1, 5, 10, 20, 50, 100]
- # param_grid = [{'decisiontreeregressor__max_depth':depths,
- #               'decisiontreeregressor__min_samples_leaf':num_leafs}]
- # pipe_tree = make_pipeline(tree_reg)
-
- # gs = GridSearchCV(estimator=forest_reg, param_grid=param_grid, scoring='neg_mean_squared_error', cv=10)
-#  # gs.fit(housing_prepared, housing_labels)
-#  # cvres = gs.cv_results_
-#  # for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
-#  #    print(np.sqrt(-mean_score), params)
-
-'''
-# <editor-fold>
-# forest_reg = RandomForestRegressor(random_state=42)
-# grid_search = GridSearchCV(forest_reg, param_grid, cv=5,
-#                            scoring='neg_mean_squared_error', return_train_score=True)
-#  grid_search.fit(housing_prepared, housing_labels)
-#  cvres = grid_search.cv_results_
-#  for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
-#      print(np.sqrt(-mean_score), params)
-#  print("#########")
-# </editor-fold>
-# 
-# 
-# <editor-fold>
-#  param_distribs = {
-#          'n_estimators': randint(low=1, high=200),
-#          'max_features': randint(low=1, high=8),
-#      }
-# 
-#  forest_reg = RandomForestRegressor(random_state=42)
-#  rnd_search = RandomizedSearchCV(forest_reg, param_distributions=param_distribs,
-#                                  n_iter=10, cv=5, scoring='neg_mean_squared_error', random_state=42)
-#  rnd_search.fit(housing_prepared, housing_labels)
-#  cvres = rnd_search.cv_results_
-#  for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
-#      print(np.sqrt(-mean_score), params)
-#  </editor-fold
-
-
-'''
