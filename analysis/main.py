@@ -32,6 +32,7 @@ from sklearn.model_selection import KFold, cross_val_score, train_test_split
 
 
 
+
 #AKTUALIZACJA LOL
 
 
@@ -217,15 +218,20 @@ def add_additional_attributes(data):
     data['avg_floor_sq'] = data['sqm_above'] / data['floors']
     data['was_seen'] = data.loc[data.view > 0, 'was_seen'] = 1
     x = data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values(by='price', ascending=False)
-    data['zipcode_cat'] = 0
-    data['zipcode_cat'] = np.where(data['price'] > 1000000, 3, data['zipcode_cat'])
-    data['zipcode_cat'] = np.where(data['price'].between(750000, 1000000), 2, data['zipcode_cat'])
-    data['zipcode_cat'] = np.where(data['price'].between(500000, 750000), 1, data['zipcode_cat'])
-    data = data.drop('zipcode', axis = 1)
+    x['zipcode_cat'] = 0
+    x['zipcode_cat'] = np.where(x['price'] > 1000000, 3, x['zipcode_cat'])
+    x['zipcode_cat'] = np.where(x['price'].between(750000, 1000000), 2, x['zipcode_cat'])
+    x['zipcode_cat'] = np.where(x['price'].between(500000, 750000), 1, x['zipcode_cat'])
+    x=x.drop('price', axis=1)
+    data = pd.merge(x, data, how='right', on=['zipcode'])
+    data=data.drop('zipcode', axis =1)
+
     data['avg_room_size'] = stats.boxcox(np.asanyarray(data[['avg_room_size']].values))[0]
     data['sqm_above'] = stats.boxcox(np.asanyarray(data[['sqm_above']].values))[0]
     data['sqm_lot'] = stats.boxcox(np.asanyarray(data[['sqm_lot']].values))[0]
     data['sqm_living'] = stats.boxcox(np.asanyarray(data[['sqm_living']].values))[0]
+
+
     return data
 
 def transform_data(data):
@@ -292,7 +298,8 @@ def gridSearchCV_KNN():
     grid_result = model.fit(housing_prepared, housing_labels)
     print('Best Score: ', grid_result.best_score_)
     print('Best Params: ', grid_result.best_params_)
-
+scores_for_plot_train=[]
+scores_for_plot_test=[]
 def checkAllModels(models_list):
     for model in models_list:
         model.fit(housing_prepared, housing_labels)
@@ -303,7 +310,8 @@ def checkAllModels(models_list):
                                                 scoring="neg_mean_squared_error", cv=10))
         scores_test = np.sqrt(-cross_val_score(model, test_X, test_y,
                                                 scoring="neg_mean_squared_error", cv=10))
-
+        scores_for_plot_train.append(scores_train.mean())
+        scores_for_plot_test.append(scores_test.mean())
         display_scores(scores_train, 'Model:'+ model.__class__.__name__)
         display_scores(scores_test, 'test')
 #LinearRegression
@@ -316,6 +324,8 @@ forest_reg =  RandomForestRegressor(n_estimators=50, random_state=42, max_featur
 knn=neighbors.KNeighborsRegressor(5,weights='uniform')
 models = [lin_reg, bayesian_ridge, model_ridge, tree_reg, forest_reg , knn]
 checkAllModels(models)
+
+
 #
 #
 # lin_reg.fit(housing_prepared, housing_labels)
