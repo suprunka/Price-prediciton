@@ -10,30 +10,28 @@ from sklearn.metrics import mean_squared_error
 import seaborn as sns
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import OneHotEncoder
-from scipy.stats import mstats
+from scipy.stats import mstats, randint
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.model_selection import cross_val_score
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import cross_val_score, RandomizedSearchCV, GridSearchCV
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.svm import SVR
-from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import RandomizedSearchCV
-from scipy.stats import randint
 from sklearn import linear_model
 from sklearn import neighbors
 from scipy import stats
 from scipy.special import boxcox1p
-from sklearn.linear_model import LinearRegression
+from sklearn.kernel_ridge import KernelRidge
+from sklearn.linear_model import LinearRegression, ElasticNet, Lasso,  BayesianRidge, LassoLarsIC
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.base import BaseEstimator, TransformerMixin, RegressorMixin, clone
 from sklearn.model_selection import KFold, cross_val_score, train_test_split
-
-
-
-
-#AKTUALIZACJA LOL
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import RobustScaler
+import xgboost as xgb
+import lightgbm as lgb
+import math
 
 
 # Where to save the figures
@@ -322,7 +320,77 @@ tree_reg = DecisionTreeRegressor(random_state=42)
 forest_reg =  RandomForestRegressor(n_estimators=50, random_state=42, max_features="auto", max_depth=100,
                                    min_samples_leaf=4, bootstrap=True, min_impurity_decrease=100)
 knn=neighbors.KNeighborsRegressor(5,weights='uniform')
-models = [lin_reg, bayesian_ridge, model_ridge, tree_reg, forest_reg , knn]
+lasso = make_pipeline(RobustScaler(), Lasso(alpha =0.0005, random_state=1))
+ENet = make_pipeline(RobustScaler(), ElasticNet(alpha=0.0005, l1_ratio=.9, random_state=3))
+KRR = KernelRidge(alpha=0.6, kernel='polynomial', degree=2, coef0=2.5)
+GBoost = GradientBoostingRegressor(n_estimators=3000, learning_rate=0.05,
+                                   max_depth=4, max_features='sqrt',
+                                   min_samples_leaf=15, min_samples_split=10,
+                                   loss='huber', random_state =5)
+model_xgb = xgb.XGBRegressor(colsample_bytree=0.4603, gamma=0.0468,
+                             learning_rate=0.05, max_depth=3,
+                             min_child_weight=1.7817, n_estimators=2200,
+                             reg_alpha=0.4640, reg_lambda=0.8571,
+                             subsample=0.5213, silent=1,
+                             random_state =7, nthread = -1)
+model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
+                              learning_rate=0.05, n_estimators=720,
+                              max_bin = 55, bagging_fraction = 0.8,
+                              bagging_freq = 5, feature_fraction = 0.2319,
+                              feature_fraction_seed=9, bagging_seed=9,
+                              min_data_in_leaf =6, min_sum_hessian_in_leaf = 11)
+
+
+
+
+class StackingAveragedModels(BaseEstimator, RegressorMixin, TransformerMixin):
+    def __init__(self, base_models, meta_model, n_folds=5):
+        self.base_models = base_models
+        self.meta_model = meta_model
+        self.n_folds = n_folds
+
+    # We again fit the data on clones of the original models
+    def fit(self, X, y):
+        self.base_models_ = [list() for x in self.base_models]
+        self.meta_model_ = clone(self.meta_model)
+        kfold = KFold(n_splits=self.n_folds, shuffle=True, random_state=156)
+
+        # Train cloned base models then create out-of-fold predictions
+        # that are needed to train the cloned meta-model
+        out_of_fold_predictions = np.zeros((X.shape[0], len(self.base_models)))
+        for i, model in enumerate(self.base_models):
+            for train_index, holdout_index in kfold.split(X, y):
+                instance = clone(model)
+                self.base_models_[i].append(instance)
+                instance.fit(X[train_index], y[train_index])
+                y_pred = instance.predict(X[holdout_index])
+                out_of_fold_predictions[holdout_index, i] = y_pred
+        # Now train the cloned  meta-model using the out-of-fold predictions as new feature
+        self.meta_model_.fit(out_of_fold_predictions, y)
+        return self
+
+    # Do the predictions of all base models on the test data and use the averaged predictions as
+    # meta-features for the final prediction which is done by the meta-model
+    def predict(self, X):
+        meta_features = np.column_stack([
+            np.column_stack([model.predict(X) for model in base_models]).mean(axis=1)
+            for base_models in self.base_models_])
+        return self.meta_model_.predict(meta_features)
+
+def rmsle_cv_(model):
+    cv = KFold(n_splits=5, shuffle=True, random_state=42)
+    score = np.sqrt(- cross_val_score(model, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=cv))
+    return(score)
+
+
+models = [lin_reg, bayesian_ridge, model_ridge, tree_reg, forest_reg , knn, lasso,ENet, KRR,GBoost,model_xgb,  model_lgb  ]
+
+for i in range(len(models)) :
+    print(abs(len(models)-i))
+    averaged_models = StackingAveragedModels(base_models=(models[abs(len(models)-10-i)],models[abs(len(models)-1-i)],models[abs(len(models)-2-i)],models[abs(len(models)-3-i)],models[abs(len(models)-4-i)],models[abs(len(models)-5-i)],models[abs(len(models)-6-i)],models[abs(len(models)-7-i)],models[abs(len(models)-8-i)],models[abs(len(models)-9-i)],models[abs(len(models)-11-i)] ), meta_model=models[abs(len(models)-12-i)])
+    score = rmsle_cv_(averaged_models)
+    print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
+
 checkAllModels(models)
 
 
@@ -378,45 +446,12 @@ checkAllModels(models)
 # display_scores(knn_rmse_scores,'KNeighborsRegressor' )
 #
 
-class StackingAveragedModels(BaseEstimator, RegressorMixin, TransformerMixin):
-    def __init__(self, base_models, meta_model, n_folds=5):
-        self.base_models = base_models
-        self.meta_model = meta_model
-        self.n_folds = n_folds
+# averaged_models = StackingAveragedModels(base_models = (forest_reg,knn,bayesian_ridge), meta_model= model_ridge)
+# score = rmsle_cv_(averaged_models)
+# print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
 
-    # We again fit the data on clones of the original models
-    def fit(self, X, y):
-        self.base_models_ = [list() for x in self.base_models]
-        self.meta_model_ = clone(self.meta_model)
-        kfold = KFold(n_splits=self.n_folds, shuffle=True, random_state=156)
 
-        # Train cloned base models then create out-of-fold predictions
-        # that are needed to train the cloned meta-model
-        out_of_fold_predictions = np.zeros((X.shape[0], len(self.base_models)))
-        for i, model in enumerate(self.base_models):
-            for train_index, holdout_index in kfold.split(X, y):
-                instance = clone(model)
-                self.base_models_[i].append(instance)
-                instance.fit(X[train_index], y[train_index])
-                y_pred = instance.predict(X[holdout_index])
-                out_of_fold_predictions[holdout_index, i] = y_pred
-        # Now train the cloned  meta-model using the out-of-fold predictions as new feature
-        self.meta_model_.fit(out_of_fold_predictions, y)
-        return self
-
-    # Do the predictions of all base models on the test data and use the averaged predictions as
-    # meta-features for the final prediction which is done by the meta-model
-    def predict(self, X):
-        meta_features = np.column_stack([
-            np.column_stack([model.predict(X) for model in base_models]).mean(axis=1)
-            for base_models in self.base_models_])
-        return self.meta_model_.predict(meta_features)
-
-def rmsle_cv_(model):
-    cv = KFold(n_splits=5, shuffle=True, random_state=42)
-    score = np.sqrt(- cross_val_score(model, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=cv))
-    return(score)
-
-averaged_models = StackingAveragedModels(base_models = (forest_reg,knn,bayesian_ridge), meta_model=model_ridge)
-score = rmsle_cv_(averaged_models)
-print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
+for i in range(len(models)) :
+    averaged_models = StackingAveragedModels(base_models=(models[fabs(len(models)-i)],models[fabs(len(models)-1-i)],models[fabs(len(models)-2-i)],models[fabs(len(models)-3-i)],models[fabs(len(models)-4-i)],models[fabs(len(models)-5-i)],models[fabs(len(models)-6-i)],models[fabs(len(models)-7-i)],models[fabs(len(models)-8-i)],models[fabs(len(models)-9-i)],models[fabs(len(models)-10-i)] ), meta_model=models[fabs(len(models)-11-i)])
+    score = rmsle_cv_(averaged_models)
+    print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
