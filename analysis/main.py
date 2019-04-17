@@ -315,6 +315,8 @@ def checkAllModels(models_list):
 #                                    min_samples_leaf=4, bootstrap=True, min_impurity_decrease=100
 lin_reg = LinearRegression(copy_X=True, fit_intercept=False, n_jobs=-1,normalize=True)
 
+
+
 bayesian_ridge = linear_model.BayesianRidge(n_iter=100, tol=0.01, alpha_1=0.0001, alpha_2=0.000001)
 
 model_ridge=linear_model.Ridge(alpha=10, copy_X=True, fit_intercept=False, max_iter=None, normalize=True)
