@@ -30,8 +30,8 @@ from sklearn.base import BaseEstimator, TransformerMixin, RegressorMixin, clone
 from sklearn.model_selection import KFold, cross_val_score, train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import RobustScaler
-# import xgboost as xgb
-# import lightgbm as lgb
+import xgboost as xgb
+import lightgbm as lgb
 import math
 
 
@@ -63,7 +63,7 @@ high = .95
 
 
 #<editor-fold desc='Droping unnecesary columns'>
-housing = housing.drop(["sqft_living15", "sqft_lot15", 'date', 'waterfront'], axis=1)
+housing = housing.drop(["sqft_living15", "sqft_lot15",'date', 'waterfront'], axis=1)
 #</editor-fold>
 #<editor-fold desc='Creating dolumns which represnet data in square meters'>
 housing['sqm_living'] = round(housing['sqft_living']/valueOfSqM)
@@ -119,8 +119,8 @@ virt_num = virt
 
 #Getting rid of outliers
 def get_rid_of_outliers(num_data):
-    Q1 = num_data.quantile(0.25)
-    Q3 = num_data.quantile(0.75)
+    Q1 = num_data.quantile(0.3)
+    Q3 = num_data.quantile(0.7)
     IQR = Q3 - Q1
     return num_data[~((num_data < (Q1 - 1.5 * IQR)) |(num_data > (Q3 + 1.5 * IQR))).any(axis=1)]
 
@@ -153,6 +153,16 @@ def add_additional_attributes(data):
     x=x.drop('price', axis=1)
     data = pd.merge(x, data, how='right', on=['zipcode'])
     data=data.drop('zipcode', axis =1)
+    train_set = data.copy()
+    train_set['age'] = datetime.date.today().year - train_set['yr_built']
+    bins = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200]
+    labels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    train_set['binned_age'] = pd.cut(train_set['age'], bins=bins, labels=labels)
+
+    y = train_set[["binned_age", "price"]].groupby(["binned_age"], as_index=False).mean().sort_values(by='price',  ascending=False)
+
+    data['binned_age'] = 0
+    data['binned_age'] = np.where(train_set['binned_age'].between(4, 9), 1, data['binned_age'])
     return data
 
 def transform_data(data):
@@ -317,14 +327,14 @@ forest_reg =  RandomForestRegressor(n_jobs= -1, min_weight_fraction_leaf=0., n_e
 knn=neighbors.KNeighborsRegressor(weights='distance', n_neighbors=10, n_jobs=None, leaf_size=360,
                                    algorithm='ball_tree')
 
-lasso = make_pipeline(RobustScaler(), Lasso(warm_start=False, tol=0.01, selection='random', precompute=True,
+lasso =  Lasso(warm_start=False, tol=0.01, selection='random', precompute=True,
                                             positive=False,normalize=False, max_iter=10, fit_intercept=False,
-                                            copy_X=True, alpha=5.0))
+                                            copy_X=True, alpha=5.0)
 #lepszy wynik bez make_pipeline dla lasso i eNet
-ENet = make_pipeline(RobustScaler(), ElasticNet(warm_start=False, tol=0.001, selection='random',
+ENet = ElasticNet(warm_start=False, tol=0.001, selection='random',
                                                 precompute=True, positive=False, normalize=False,
                                                 max_iter=1000, l1_ratio=0.1, fit_intercept=False,
-                                                copy_X=True, alpha=0.))
+                                                copy_X=True, alpha=0.)
 
 KRR = KernelRidge(alpha=0.6, kernel='polynomial', degree=2, coef0=2.5)
 
@@ -332,18 +342,18 @@ GBoost = GradientBoostingRegressor(n_estimators=3000, learning_rate=0.05,
                                    max_depth=4, max_features='sqrt',
                                    min_samples_leaf=15, min_samples_split=10,
                                    loss='huber', random_state =5)
-# model_xgb = xgb.XGBRegressor(colsample_bytree=0.4603, gamma=0.0468,
-#                              learning_rate=0.05, max_depth=3,
-#                              min_child_weight=1.7817, n_estimators=2200,
-#                              reg_alpha=0.4640, reg_lambda=0.8571,
-#                              subsample=0.5213, silent=1,
-#                              random_state =7, nthread = -1)
-# model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
-#                               learning_rate=0.05, n_estimators=720,
-#                               max_bin = 55, bagging_fraction = 0.8,
-#                               bagging_freq = 5, feature_fraction = 0.2319,
-#                               feature_fraction_seed=9, bagging_seed=9,
-#                               min_data_in_leaf =6, min_sum_hessian_in_leaf = 11)
+model_xgb = xgb.XGBRegressor(colsample_bytree=0.4603, gamma=0.0468,
+                             learning_rate=0.05, max_depth=3,
+                             min_child_weight=1.7817, n_estimators=2200,
+                             reg_alpha=0.4640, reg_lambda=0.8571,
+                             subsample=0.5213, silent=1,
+                             random_state =7, nthread = -1)
+model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
+                              learning_rate=0.05, n_estimators=720,
+                              max_bin = 55, bagging_fraction = 0.8,
+                              bagging_freq = 5, feature_fraction = 0.2319,
+                              feature_fraction_seed=9, bagging_seed=9,
+                              min_data_in_leaf =6, min_sum_hessian_in_leaf = 11)
 
 
 
@@ -387,34 +397,21 @@ def rmsle_cv_(model):
     score = np.sqrt(- cross_val_score(model, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=cv))
     return(score)
 
-#,model_xgb,  model_lgb
-models = [lin_reg, bayesian_ridge, model_ridge, tree_reg, forest_reg , knn, lasso,ENet, KRR,GBoost]
+def stacking_avg_for_all_combinations_of_models(models):
+    for i in range(len(models)) :
+        averaged_models = StackingAveragedModels(base_models=(models[math.fabs(len(models)-i)],
+        models[math.fabs(len(models)-1-i)],models[math.fabs(len(models)-2-i)],models[math.fabs(len(models)-3-i)],
+        models[math.fabs(len(models)-4-i)],models[math.fabs(len(models)-5-i)],models[math.fabs(len(models)-6-i)],
+        models[math.fabs(len(models)-7-i)],models[math.fabs(len(models)-8-i)],models[math.fabs(len(models)-9-i)],
+        models[math.fabs(len(models)-10-i)] ), meta_model=models[math.fabs(len(models)-11-i)])
+        score = rmsle_cv_(averaged_models)
+        print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
 
-# for i in range(len(models)) :
-#     print(abs(len(models)-i))
-#     averaged_models = StackingAveragedModels(base_models=(models[abs(len(models)-10-i)],models[abs(len(models)-1-i)],
-#     models[abs(len(models)-2-i)],models[abs(len(models)-3-i)],models[abs(len(models)-4-i)],
-#     models[abs(len(models)-5-i)],models[abs(len(models)-6-i)],models[abs(len(models)-7-i)],
-#     models[abs(len(models)-8-i)],models[abs(len(models)-9-i)],models[abs(len(models)-11-i)] ),
-#     meta_model=models[abs(len(models)-12-i)])
-#     score = rmsle_cv_(averaged_models)
-#     print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
-#
-checkAllModels(models)
+models = [forest_reg ,GBoost, model_xgb,  model_lgb]
+#checkAllModels(models)
+#stacking_avg_for_all_combinations_of_models(models)
+averaged_models = StackingAveragedModels(base_models=(GBoost, model_xgb,  model_lgb), meta_model =forest_reg)
+score = rmsle_cv_(averaged_models)
+print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
 
-
-# averaged_models = StackingAveragedModels(base_models = (forest_reg,knn,bayesian_ridge), meta_model= model_ridge)
-# score = rmsle_cv_(averaged_models)
-# print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
-
-
-# for i in range(len(models)) :
-#     averaged_models = StackingAveragedModels(base_models=(models[math.fabs(len(models)-i)],
-#     models[math.fabs(len(models)-1-i)],models[math.fabs(len(models)-2-i)],models[math.fabs(len(models)-3-i)],
-#     models[math.fabs(len(models)-4-i)],models[math.fabs(len(models)-5-i)],models[math.fabs(len(models)-6-i)],
-#     models[math.fabs(len(models)-7-i)],models[math.fabs(len(models)-8-i)],models[math.fabs(len(models)-9-i)],
-#     models[math.fabs(len(models)-10-i)] ), meta_model=models[math.fabs(len(models)-11-i)])
-#     score = rmsle_cv_(averaged_models)
-#     print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
-#
 # gridSearchCV(housing_prepared, housing_labels)
