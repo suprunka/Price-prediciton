@@ -178,6 +178,7 @@ def transform_data(data):
     return data_scaled
 
 
+
 def get_labels(data):
     data_additional_attributes = add_additional_attributes(data)
     data_filtered = get_rid_of_outliers(data_additional_attributes)[
