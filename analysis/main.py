@@ -144,7 +144,7 @@ def add_additional_attributes(data):
     data.loc[data.all_rooms== 0, 'all_rooms'] = 1
     data['avg_room_size'] = data['sqm_living']/ data['all_rooms']
     data['avg_floor_sq'] = data['sqm_above'] / data['floors']
-    data['was_seen'] = data.loc[data.view > 0, 'was_seen'] = 1
+    data['overall'] = data['grade'] + data['condition']
     x = data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values(by='price', ascending=False)
     x['zipcode_cat'] = 0
     x['zipcode_cat'] = np.where(x['price'] > 1000000, 3, x['zipcode_cat'])
@@ -172,7 +172,7 @@ def transform_data(data):
     data_connected = pd.merge(data_filtered, data_additional_attributes, how='inner',
                               on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living'])
     data_no_duplicates = data_connected.drop_duplicates(['id'])
-    data_deleted_columns = data_no_duplicates.drop(['bathrooms',  'view', 'bedrooms', 'floors'], axis=1)
+    data_deleted_columns = data_no_duplicates.drop(['bathrooms','yr_renovated','view', 'bedrooms', 'floors','condition'], axis=1)
     cols = [col for col in data_deleted_columns.columns if col not in ['price', 'id']]
     data_scaled = MinMaxScaler().fit_transform(data_no_duplicates[cols])
     return data_scaled
