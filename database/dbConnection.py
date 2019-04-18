@@ -1,24 +1,32 @@
 from pymongo import MongoClient
-
-import pprint
-
+from pandas import DataFrame
+import pymongo
+from house import *
 
 def connect_to_database():
-    db = MongoClient("mongodb+srv://jakub:90809988Qwe@thecluster-zrxzv.mongodb.net/test?retryWrites=true").Houses
-    collection = db.Train
+    connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
+    db = pymongo.database.Database(connection, 'Project')
+    collection = pymongo.collection.Collection(db, 'Houses')
     return collection
 
 
-def find_one(query):
-    return connect_to_database().find(query)
+
+def get_data():
+    result = DataFrame(list(connect_to_database().find({}, {'_id': 0})))
+    return  result
 
 
-def main():
-    query = {"MSSubClass": "60"}
-    found = find_one(query)
-    pprint.pprint(found)
+def get_specific(id):
+    result = connect_to_database().find({'id': '"%s"'%id})
+    return result
 
 
-if __name__ == "__main__": main()
+def delete_specific(id):
+    result = connect_to_database().delete_one({'id': '"%s"'%id})
 
 
+def add_house():
+    connect_to_database().insert_one(set_properties(create_house(), {'price': 53200, 'lat': 123}).__dict__)
+
+
+add_house()

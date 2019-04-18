@@ -32,6 +32,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import RobustScaler
 # import xgboost as xgb
 # import lightgbm as lgb
+from dbConnection import *
 import math
 
 
@@ -52,7 +53,7 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 now = datetime.datetime.now()
 
 
-housing = pd.read_csv(r'house.csv')
+housing_n = get_data()
 #Constant values
 valueOfSqM = 10.76
 numberOfBins = 4
@@ -63,7 +64,10 @@ high = .95
 
 
 #<editor-fold desc='Droping unnecesary columns'>
-housing = housing.drop(["sqft_living15", "sqft_lot15",'date', 'waterfront'], axis=1)
+housing_n = housing_n.drop(["sqft_living15", "sqft_lot15",'date', 'waterfront'], axis=1)
+housing_n['floors'] = housing_n['floors'].str[1:-1]
+housing = housing_n.convert_objects(convert_numeric=True)
+housing = housing[:-1]
 #</editor-fold>
 #<editor-fold desc='Creating dolumns which represnet data in square meters'>
 housing['sqm_living'] = round(housing['sqft_living']/valueOfSqM)
@@ -141,7 +145,7 @@ housing_labels = strat_train_set["price"].copy()
 
 def add_additional_attributes(data):
     data['all_rooms'] = data['bathrooms'] + data['bedrooms']
-    data.loc[data.all_rooms== 0, 'all_rooms'] = 1
+    data.loc[data.all_rooms == 0, 'all_rooms'] = 1
     data['avg_room_size'] = data['sqm_living']/ data['all_rooms']
     data['avg_floor_sq'] = data['sqm_above'] / data['floors']
     data['overall'] = data['grade'] + data['condition']
