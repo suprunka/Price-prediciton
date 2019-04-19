@@ -17,16 +17,35 @@ def get_data():
 
 
 def get_specific(id):
-    result = connect_to_database().find({'id': '"%s"'%id})
-    return result
+    found_result = False
+    result = connect_to_database().find_one({'id': '"%s"' % id})
+    if result is None:
+        another_attempt = connect_to_database().find_one({'id': '""%s""' % id})
+        if another_attempt is None:
+            return found_result
+    found_result = True
+    return found_result
 
 
 def delete_specific(id):
+    delete_result = False
     result = connect_to_database().delete_one({'id': '"%s"'%id})
+    if result.deleted_count == 0:
+        another_attempt = connect_to_database().delete_one({'id': '""%s""'%id})
+        if another_attempt.deleted_count == 0:
+            return delete_result
+    delete_result = True
+    return delete_result
 
 
 def add_house():
-    connect_to_database().insert_one(set_properties(create_house(), {'price': 53200, 'lat': 123}).__dict__)
+    connect_to_database().insert_one(set_properties(create_house(), {'lat': 343, 'price':324530, 'sqm_lot': 320}).__dict__)
 
 
 add_house()
+
+# t = delete_specific(978432)
+# print(t)
+
+
+

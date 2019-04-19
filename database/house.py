@@ -27,9 +27,10 @@ class House:
 
 
 def create_house():
-    return House(round(random.randint(1, 600000) / datetime.datetime.now().second+0.1 / 0.02), 0)
+    return House(str(round(random.randint(1, 600000) * datetime.datetime.now().second+0.1/55 / 0.02)))
 
 
 def set_properties(house, dictionary):
+    print(house.id)
     house.__call__(dictionary)
     return house
