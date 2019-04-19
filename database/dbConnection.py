@@ -38,15 +38,12 @@ def delete_specific(id):
     return delete_result
 
 
-
 def add_house():
-    connect_to_database().insert_one(set_properties(create_house(), {'lat': 343, 'price':324530, 'sqm_lot': 320}).__dict__)
+    connect_to_database().insert_one(set_properties(create_house(), dict).__dict__)
+
+
+
 
 
 add_house()
-
-# t = delete_specific(978432)
-# print(t)
-
-
 
