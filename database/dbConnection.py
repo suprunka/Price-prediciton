@@ -38,12 +38,35 @@ def delete_specific(id):
     return delete_result
 
 
-def add_house():
-    connect_to_database().insert_one(set_properties(create_house(), dict).__dict__)
+def add_house(dict):
+    house = set_properties(create_house(), transform_dictionary(dict)).__dict__
+    connect_to_database().insert_one(house)
+
+
+def transform_dictionary(dict):
+    value_one = dict.get('date')
+    dict['date'] = "\"" + value_one + "\""
+
+    value_one = dict.get('floors')
+    dict['floors'] = "\"" + value_one + "\""
+
+    value_one = dict.get('zipcode')
+    dict['zipcode'] = "\"" + value_one + "\""
+
+    return dict
+
+
+dictionary = {'date': '2323123', 'price':'32042', 'bedrooms': '3', 'bathrooms': '2',
+              'sqft_living': '32534', 'sqft_lot':'3212', 'floors': '2', 'waterfront': '2',
+              'view': '1', 'condition': '3', 'grade': '8', 'sqft_above': '21', 'sqft_basement': '42',
+              'yr_built': '321', 'yr_renovated': '213', 'zipcode': '21332', 'lat': '231', 'long': '-123',
+              'sqft_living15': '321', 'sqft_lot15': '32123'}
+
+
+add_house(dictionary)
 
 
 
 
-
-add_house()
-
+# result = transform_dictionary(dictionary)
+# print(result)
