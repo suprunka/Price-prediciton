@@ -3,12 +3,19 @@ from pandas import DataFrame
 import pymongo
 from house import *
 
+
 def connect_to_database():
     connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
     db = pymongo.database.Database(connection, 'Project')
     collection = pymongo.collection.Collection(db, 'Houses')
     return collection
 
+
+def connect_to_tokens():
+    connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
+    db = pymongo.database.Database(connection, 'Project')
+    collection = pymongo.collection.Collection(db, 'Tokens')
+    return collection
 
 
 def get_data():
@@ -18,13 +25,14 @@ def get_data():
 
 def get_specific(id):
     found_result = False
-    result = connect_to_database().find_one({'id': '"%s"' % id})
+    result = connect_to_database().find_one({'id': '"%s"' % id}, {'_id':0})
     if result is None:
-        another_attempt = connect_to_database().find_one({'id': '""%s""' % id})
+        another_attempt = connect_to_database().find_one({'id': '""%s""' % id}, {'_id':0})
         if another_attempt is None:
             return found_result
+        return another_attempt
     found_result = True
-    return found_result
+    return result
 
 
 def delete_specific(id):
@@ -63,10 +71,10 @@ dictionary = {'date': '2323123', 'price':'32042', 'bedrooms': '3', 'bathrooms': 
               'sqft_living15': '321', 'sqft_lot15': '32123'}
 
 
-add_house(dictionary)
+# add_house(dictionary)
 
-
-
+w = get_specific(27442266)
+print(w)
 
 # result = transform_dictionary(dictionary)
 # print(result)
