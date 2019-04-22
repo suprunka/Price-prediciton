@@ -1,3 +1,5 @@
+html { scroll-behavior: smooth; }
+
 .navbar navbar-inverse{
     background:#252527;
 }
@@ -37,13 +39,14 @@ font-size: 20px;
 line-height: 1.8;
 word-spacing: 3px;
 min-height : 90hv;
+    overflow-y: auto;
 
 }
 
 
 #predictions
 {
-background-image:url("../img/balance.jpg");
+background-image:url("img/balance.jpg");
 color: #f2f2f2;
 
 
@@ -61,6 +64,11 @@ form
 font-size: 16px;
 line-height: 0;
 word-spacing: 0px;
+}
+.rs-range
+{
+
+    max-width: 35vh;
 }
 .rs-label {
 
@@ -97,7 +105,7 @@ float:right;
 }
 #contact
 {
-background-image: url("../img/couple.jpg");
+background-image: url("img/couple.jpg");
 }
 .contactbox
 {

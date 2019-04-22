@@ -1,5 +1,15 @@
 from dbConnection import *
 import hashlib, binascii, os, smtplib
+def connect_to_tokens():
+    connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
+    db = pymongo.database.Database(connection, 'Project')
+    collection = pymongo.collection.Collection(db, 'Tokens')
+    return collection
+def connect_to_users():
+    connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
+    db = pymongo.database.Database(connection, 'Project')
+    collection = pymongo.collection.Collection(db, 'Users')
+    return collection
 
 
 def insert_1000_tokens():
@@ -63,7 +73,7 @@ def register(email, password, token):
 
 def log_in(email, password):
     stored = connect_to_users().find_one({'email': email})['password']
-    print(check_password(password, stored))
+    return check_password(password, stored)
 
 
 def change_password(email, token, new_password):
@@ -74,7 +84,8 @@ def change_password(email, token, new_password):
         if changed.modified_count == 1:
             msg = 'Your password has been changed to', new_password
             send_mail(email, msg)
-
+            return True
+    return False
 
 def send_mail(to, message):
     server = smtplib.SMTP('smtp.gmail.com', 25)

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><!DOCTYPE html>
+<html>
+<title>Houses prediction website</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+
+<body>
+<nav class="navbar navbar-inverse">
+<div class="container-fluid">
+<div class="navbar-header">
+      <a class="navbar-brand" href="#">Price Predictions</a>
+</div>
+<ul class="nav navbar-nav">
+	<li><a href="{{ url_for('main') }}">Home</a></li>
+	<li><a href="{{ url_for('main') }}#about">About us</a></li>
+	<li><a href="{{ url_for('main') }}#predictions">Predictions</a></li>
+	<li><a href="{{ url_for('main') }}#contact">Contact</a></li>
+</ul>
+<ul class="nav navbar-nav navbar-right">
+      <li><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-user"></span> For agents</a></li>
+    </ul>
+</div>
+</nav>
+	<section id="content">
+		<form id="form_content" action="/register_agent_check" method="post">
+			<h1 >Registration </h1>
+			{% if result== 'error'%}<p style="color: #9C1A1C">Error occured while creating the account. Try again</p>
+			{% endif %}
+
+				<input type="text" placeholder="Mail" required name="mail" id="mail" />
+			<p></p>
+				<input type="password" placeholder="Password" required  name="password" id="password" />
+			<p></p>
+            	<input type="password" placeholder="Confirm password" required  name="passwordCon" id="passwordCon" />
+<p><div id="divCheckPasswordMatch"></div></p>
+                <input type="text" placeholder="Token" required  name="token" id="token" />
+<p></p>
+				<input type="submit" id="sub_btn" class="btn btn-outline-info" value="Log in"/>
+				<p></p>
+
+		</form><!-- form -->
+		
+	</section><!-- content -->
+
+<script type="text/javascript">
+    function checkPasswordMatch() {
+    var password = $("#password").val();
+    var confirmPassword = $("#passwordCon").val();
+
+    if (password != confirmPassword){
+        $("#divCheckPasswordMatch").html("Passwords do not match!");
+        $("sub_btn").disabled  = true;}
+    else{
+        $("#divCheckPasswordMatch").html("Passwords match.");
+            $("sub_btn").disabled = false;
+    }
+}
+$(document).ready(function () {
+   $("#password, #passwordCon").keyup(checkPasswordMatch);
+});
+</script>
+
+</body>
+</html>

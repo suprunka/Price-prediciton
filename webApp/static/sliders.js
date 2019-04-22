@@ -6,22 +6,21 @@ var rangeSliderFloor = document.getElementById("rs-range-line-floor");
 var rangeBulletFloor = document.getElementById("rs-bullet-floor");
 
 rangeSliderCondition.addEventListener("input", showSliderValueCondition, false);
-
 rangeSliderGrade.addEventListener("input", showSliderValueGrade, false);
 rangeSliderFloor.addEventListener("input", showSliderValueFloor, false);
 
 function showSliderValueGrade() {
   rangeBulletGrade.innerHTML = rangeSliderGrade.value;
   var bulletPosition = (rangeSliderGrade.value /rangeSliderGrade.max);
-  rangeBulletGrade.style.left = (bulletPosition*136 ) + "px";
+  rangeBulletGrade.style.left = (bulletPosition) + "px";
 }
 function showSliderValueCondition() {
   rangeBulletCondition.innerHTML = rangeSliderCondition.value;
   var bulletPosition = (rangeSliderCondition.value /rangeSliderCondition.max);
-  rangeBulletCondition.style.left = (bulletPosition*136 ) + "px";
+  rangeBulletCondition.style.left = (bulletPosition ) + "px";
 }
 function showSliderValueFloor() {
   rangeBulletFloor.innerHTML = rangeSliderFloor.value;
   var bulletPosition = (rangeSliderFloor.value /rangeSliderFloor.max);
-  rangeBulletFloor.style.left = (bulletPosition*136 ) + "px";
+  rangeBulletFloor.style.left = (bulletPosition) + "px";
 }

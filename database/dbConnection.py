@@ -3,26 +3,12 @@ from pandas import DataFrame
 import pymongo
 from house import *
 
-
 def connect_to_database():
     connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
     db = pymongo.database.Database(connection, 'Project')
     collection = pymongo.collection.Collection(db, 'Houses')
     return collection
 
-
-def connect_to_tokens():
-    connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
-    db = pymongo.database.Database(connection, 'Project')
-    collection = pymongo.collection.Collection(db, 'Tokens')
-    return collection
-
-
-def connect_to_users():
-    connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
-    db = pymongo.database.Database(connection, 'Project')
-    collection = pymongo.collection.Collection(db, 'Users')
-    return collection
 
 
 def get_data():
@@ -31,57 +17,19 @@ def get_data():
 
 
 def get_specific(id):
-    found_result = False
-    result = connect_to_database().find_one({'id': '"%s"' % id}, {'_id':0})
-    if result is None:
-        another_attempt = connect_to_database().find_one({'id': '""%s""' % id}, {'_id':0})
-        if another_attempt is None:
-            return found_result
-        return another_attempt
-    found_result = True
+    result = connect_to_database().find({'id': '"%s"'%id})
     return result
 
 
 def delete_specific(id):
-    delete_result = False
     result = connect_to_database().delete_one({'id': '"%s"'%id})
-    if result.deleted_count == 0:
-        another_attempt = connect_to_database().delete_one({'id': '""%s""'%id})
-        if another_attempt.deleted_count == 0:
-            return delete_result
-    delete_result = True
-    return delete_result
 
 
-def add_house(dict):
-    house = set_properties(create_house(), transform_dictionary(dict)).__dict__
-    connect_to_database().insert_one(house)
+def add_house_test():
+    connect_to_database().insert_one(set_properties(create_house(), {'price': 53200, 'lat': 123}).__dict__)
+
+def add_house(house):
+    connect_to_database().insert_one(house.__dict__)
 
 
-def transform_dictionary(dict):
-    value_one = dict.get('date')
-    dict['date'] = "\"" + value_one + "\""
-
-    value_one = dict.get('floors')
-    dict['floors'] = "\"" + value_one + "\""
-
-    value_one = dict.get('zipcode')
-    dict['zipcode'] = "\"" + value_one + "\""
-
-    return dict
-
-
-dictionary = {'date': '2323123', 'price':'32042', 'bedrooms': '3', 'bathrooms': '2',
-              'sqft_living': '32534', 'sqft_lot':'3212', 'floors': '2', 'waterfront': '2',
-              'view': '1', 'condition': '3', 'grade': '8', 'sqft_above': '21', 'sqft_basement': '42',
-              'yr_built': '321', 'yr_renovated': '213', 'zipcode': '21332', 'lat': '231', 'long': '-123',
-              'sqft_living15': '321', 'sqft_lot15': '32123'}
-
-
-# add_house(dictionary)
-
-w = get_specific(27442266)
-print(w)
-
-# result = transform_dictionary(dictionary)
-# print(result)
+add_house_test()

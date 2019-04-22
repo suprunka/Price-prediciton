@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-<link rel="stylesheet" href="style/main.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
 
 <body>
 <nav class="navbar navbar-inverse">
@@ -16,19 +16,19 @@
       <a class="navbar-brand" href="#">Price Predictions</a>
 </div>
 <ul class="nav navbar-nav">
-	<li><a href="#">Home</a></li>
-	<li><a href="#about">About us</a></li>
-	<li><a href="#predictions">Predictions</a></li>
-	<li><a href="#contact">Contact</a></li>
+	<li><a href="{{ url_for('main') }}">Home</a></li>
+	<li><a href="{{ url_for('main') }}#about">About us</a></li>
+	<li><a href="{{ url_for('main') }}#predictions">Predictions</a></li>
+	<li><a href="{{ url_for('main') }}#contact">Contact</a></li>
 </ul>
 <ul class="nav navbar-nav navbar-right">
-      <li><a href="login.html"><span class="glyphicon glyphicon-user"></span> For agents</a></li>
+      <li><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-user"></span> For agents</a></li>
     </ul>
 </div>
 </nav>
 
 <header class="w3-display-container w3-content w3-wide" style="max-width:1500px;" id="home">
-  <img class="w3-image" src="img/house.jpg" alt="Home" width="100%" height="100%-nav.height"/>
+  <img class="w3-image" src="{{ url_for('static', filename='img/house.jpg') }}" alt="Home" width="100%" height="100%-nav.height"/>
 </header>
  <div class="section" id="about">
  <div class="container" >
@@ -70,6 +70,19 @@ House market is very vast and difficult to understand.
     </div>
     <div class="col-md-3">
 		<input required type="number" size="65" name="sqmtliving" min="0" max="100" value="4">	
+	</div>
+  </div>
+    <div class="row">
+    <div class="col-md-3">
+   Height of house </div>
+    <div class="col-md-3">
+		<input required type="number" size="65" name="sqmtliving" min="0" max="10000" value="0">
+		</div>
+	<div class="col-md-3">
+      Square meters of the basement
+    </div>
+    <div class="col-md-3">
+       <input required type="number" size="65" name="sqmtliving" min="0" max="1000" value="4">
 	</div>
   </div>
       <div class="row">
@@ -545,7 +558,7 @@ House market is very vast and difficult to understand.
     <input id="rs-range-line-condition" class="rs-range" type="range" value="0" min="0" max="10">
 	</div>
     <div class="col-md-3">
-     Grade(King County grading system)
+     Grade(King County system)
     </div>
     <div class="col-md-3">
 <span id="rs-bullet-grade" class="rs-label">0</span>
@@ -582,8 +595,9 @@ Predicted price is: <b id="price"></b>
 </div>
 </div> 
 </div>
+<link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
 
-<script src="scripts/sliders.js"></script>
+<script  src="{{ url_for('static', filename='sliders.js')}}"></script>
 
 
 </body>
