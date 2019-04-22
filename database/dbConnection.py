@@ -18,6 +18,13 @@ def connect_to_tokens():
     return collection
 
 
+def connect_to_users():
+    connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
+    db = pymongo.database.Database(connection, 'Project')
+    collection = pymongo.collection.Collection(db, 'Users')
+    return collection
+
+
 def get_data():
     result = DataFrame(list(connect_to_database().find({}, {'_id': 0})))
     return  result

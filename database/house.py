@@ -1,5 +1,7 @@
 import random
 import datetime
+
+
 class House:
     def __init__(self, id, date=None, price=0, bedrooms=0, bathrooms=0, sqft_living=0, sqft_lot=0,
                  floors=0,waterfront = 0, view=0, condition=0,
