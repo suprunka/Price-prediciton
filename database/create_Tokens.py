@@ -4,29 +4,33 @@ import smtplib
 
 # connection = connect_to_tokens()
 
+
 def insert_1000_tokens():
-    list = []
+    the_list = []
     for i in range(1000):
         number = round(random.randint(1, 600000) * datetime.datetime.now().microsecond+0.121/55 / 0.02)
-        if number not in list:
-            list.append(number)
+        if number not in the_list:
+            the_list.append(number)
         else:
             break
-        connect_to_tokens().insert_many(list)
+        connect_to_tokens().insert_many(the_list)
+
 
 def get_data():
-    listt = []
+    the_list = []
     token_list = list(connect_to_tokens().find({}, {'_id': 0, 'isUsed': 0}))
     for el in token_list:
-        if el not in listt:
-            listt.append(el['token'])
+        if el not in the_list:
+            the_list.append(el['token'])
 
-    print(len(listt))
+    print(len(the_list))
+
 
 def get_token():
     token = connect_to_tokens().find_one({'isUsed': False})
     number = token['token']
     return number
+
 
 def give_token(email):
     number = get_token()
@@ -35,7 +39,6 @@ def give_token(email):
         msg = "dw"
         send_mail(email, msg)
         connect_to_tokens().update(the_token, {"$set": {'isUsed': True}})
-
 
     return number
 
@@ -81,7 +84,6 @@ def hash_password(password):
 def check_password(password, stored):
     salt = stored[:64]
     stored_pass = stored[64:]
-
     pwdhash = hashlib.pbkdf2_hmac('sha512', password.encode('utf-8'),
                                   salt.encode('ascii'), 100000)
     pwdhash = binascii.hexlify(pwdhash).decode('ascii')
@@ -90,4 +92,4 @@ def check_password(password, stored):
 
 
 # change_password('jak', 108758456820, 'mynewpassword')
-log_in('jak', 'mynewpassword')
+# log_in('jak', 'mynewpassword')
