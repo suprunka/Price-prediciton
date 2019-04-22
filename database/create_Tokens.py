@@ -1,29 +1,31 @@
 from dbConnection import *
-import hashlib, binascii, os
-import smtplib
-
-# connection = connect_to_tokens()
+import hashlib, binascii, os, smtplib
 
 
 def insert_1000_tokens():
-    the_list = []
-    for i in range(1000):
-        number = round(random.randint(1, 600000) * datetime.datetime.now().microsecond+0.121/55 / 0.02)
-        if number not in the_list:
-            the_list.append(number)
-        else:
-            break
+    try:
+        the_list = []
+        existing_list = get_existing_tokens()
+        for i in range(1000):
+            # number = round(random.randint(1, 600000) * datetime.datetime.now().microsecond+0.121/55 / 0.02)
+            number = 15
+            if number not in the_list and number not in existing_list:
+                the_list.append(number)
+            else:
+                #then retry to add tokens
+                break
         connect_to_tokens().insert_many(the_list)
+    except TypeError:
+        return False
 
 
-def get_data():
+def get_existing_tokens():
     the_list = []
     token_list = list(connect_to_tokens().find({}, {'_id': 0, 'isUsed': 0}))
     for el in token_list:
         if el not in the_list:
             the_list.append(el['token'])
-
-    print(len(the_list))
+    return the_list
 
 
 def get_token():
@@ -34,12 +36,13 @@ def get_token():
 
 def give_token(email):
     number = get_token()
-    if number is not None:
+    result = connect_to_users().find_one({'email': email})
+    if number is not None and result is not None:
         the_token = connect_to_tokens().find_one({'token': number})
-        msg = "dw"
+        msg = "This is your token. It is important! " \
+              "Remember to save it. Use it to create the account: ", the_token
         send_mail(email, msg)
         connect_to_tokens().update(the_token, {"$set": {'isUsed': True}})
-
     return number
 
 
@@ -52,7 +55,9 @@ def register(email, password, token):
                                             'password': hash_password(password)})
         if result is None:
             the_result = False
-
+        else:
+            msg = 'Your account has been created.'
+            send_mail(email, msg)
     return the_result
 
 
@@ -65,7 +70,10 @@ def change_password(email, token, new_password):
     connection = connect_to_users()
     result = connection.find_one({'token': token, 'email': email})
     if result is not None:
-        connection.update_one({'token': token, 'email': email}, {'$set': {'password': hash_password(new_password)}})
+        changed = connection.update_one({'token': token, 'email': email}, {'$set': {'password': hash_password(new_password)}})
+        if changed.modified_count == 1:
+            msg = 'Your password has been changed to', new_password
+            send_mail(email, msg)
 
 
 def send_mail(to, message):
@@ -81,6 +89,7 @@ def hash_password(password):
     pwdhash = binascii.hexlify(pwdhash)
     return (salt+pwdhash).decode('ascii')
 
+
 def check_password(password, stored):
     salt = stored[:64]
     stored_pass = stored[64:]
@@ -90,6 +99,12 @@ def check_password(password, stored):
     return pwdhash == stored_pass
 
 
-
+def delete_account(token, password, email):
+    result = connect_to_users().delete_one({'token': token, 'password': hash_password(password), 'email': email})
+    if result.deleted_count == 1:
+        connect_to_tokens().update(connect_to_tokens().find_one({'token': token}), {"$set": {'isUsed': False}})
+        msg = 'Your account has been deleted'
+        send_mail(email, msg)
 # change_password('jak', 108758456820, 'mynewpassword')
 # log_in('jak', 'mynewpassword')
+print(insert_1000_tokens())
