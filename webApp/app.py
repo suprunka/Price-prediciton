@@ -1,4 +1,6 @@
 from flask import Flask
+import pickle
+import numpy as np
 from flask_cors import CORS
 from flask import Flask, render_template, redirect, url_for, request, jsonify
 import database.house as house_db
@@ -87,7 +89,15 @@ def register_agent_check():
         return render_template('agent_view.html')
     return render_template('register.html', result='error')
 
+@app.route('/predict', methods=['GET', 'POST'])
+def register_agent_ch7eck():
+    form_value = request.form
+
+    x= model.predict(np.array(form_value[['bedrooms', 'bathrooms', 'condition', 'floors', 'grade', 'lat', 'long',  'yr_built','yr_renovated', 'zipcode']]))
+    return render_template('register.html', result=''+x)
+
 
 
 if __name__ == '__main__':
+    model = pickle.load(open('../analysis/model.pkl', 'rb'))
     app.run()

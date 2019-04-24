@@ -408,11 +408,14 @@ def stacking_avg_for_all_combinations_of_models(models):
         print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
 
 models = [forest_reg ,GBoost, model_xgb,  model_lgb]
-checkAllModels(models)
+#checkAllModels(models)
 #stacking_avg_for_all_combinations_of_models(models)
-#averaged_models = StackingAveragedModels(base_models=(GBoost, model_xgb,  model_lgb), meta_model =forest_reg)
+averaged_models = StackingAveragedModels(base_models=(GBoost, model_xgb,  model_lgb), meta_model =forest_reg)
 #score = rmsle_cv_(averaged_models)
 #print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
 
 # gridSearchCV(housing_prepared, housing_labels)
-# pickle.dump(forest_reg, open('model.pkl', 'wb'))
+print("przed")
+
+pickle.dump(averaged_models, open('modelfin.pkl', 'wb'))
+print("koniec")
