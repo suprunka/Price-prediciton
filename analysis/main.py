@@ -1,36 +1,21 @@
 import numpy as np
 import pandas as pd
-from matplotlib import *
 import matplotlib.pyplot as plt
-from pandas import DataFrame
-import datetime
 import os
 import pickle
-
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
-import seaborn as sns
 from sklearn.model_selection import StratifiedShuffleSplit
-from sklearn.preprocessing import OneHotEncoder
-from scipy.stats import mstats, randint
-from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.model_selection import cross_val_score, RandomizedSearchCV, GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-from sklearn.svm import SVR
 from sklearn import linear_model
 from sklearn import neighbors
-from scipy import stats
-from scipy.special import boxcox1p
 from sklearn.kernel_ridge import KernelRidge
-from sklearn.linear_model import LinearRegression, ElasticNet, Lasso,  BayesianRidge, LassoLarsIC
+from sklearn.linear_model import LinearRegression, ElasticNet, Lasso
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.base import BaseEstimator, TransformerMixin, RegressorMixin, clone
-from sklearn.model_selection import KFold, cross_val_score, train_test_split
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import RobustScaler
+from sklearn.model_selection import KFold, cross_val_score
 import xgboost as xgb
 import lightgbm as lgb
 from dbConnection import *
@@ -38,9 +23,8 @@ import math
 
 
 # Where to save the figures
-PROJECT_ROOT_DIR = r"D:\Chapter 2"
-CHAPTER_ID = "projekt"
-IMAGES_PATH = os.path.join(PROJECT_ROOT_DIR, "images", CHAPTER_ID)
+PROJECT_ROOT_DIR = r"D:\\"
+IMAGES_PATH = os.path.join(PROJECT_ROOT_DIR, "images")
 
 
 def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
@@ -55,7 +39,7 @@ now = datetime.datetime.now()
 
 
 housing_n = get_data()
-#Constant values
+# Constant values
 valueOfSqM = 10.76
 numberOfBins = 4
 divider = 1000
@@ -64,29 +48,32 @@ low = .05
 high = .95
 
 
-#<editor-fold desc='Droping unnecesary columns'>
-housing_n = housing_n.drop(["sqft_living15", "sqft_lot15",'date', 'waterfront'], axis=1)
+# <editor-fold desc='Dropping unnecessary columns'>
+housing_n = housing_n.drop(["sqft_living15", "sqft_lot15", 'date', 'waterfront'], axis=1)
 housing_n['floors'] = housing_n['floors'].str[1:-1]
+housing_n['zipcode'] = housing_n['zipcode'].str[1:-1]
 housing = housing_n.convert_objects(convert_numeric=True)
-housing = housing[:-1]
-#</editor-fold>
-#<editor-fold desc='Creating dolumns which represnet data in square meters'>
+# housing = housing[:-1]
+# </editor-fold>
+# <editor-fold desc='Creating columns which represent data in square meters'>
 housing['sqm_living'] = round(housing['sqft_living']/valueOfSqM)
 housing['sqm_lot'] = round(housing['sqft_lot']/valueOfSqM)
 housing['sqm_above'] = round(housing['sqft_above']/valueOfSqM)
 housing['sqm_basement'] = round(housing['sqft_basement']/valueOfSqM)
-#</editor-fold>
-#<editor-fold desc='Droping columns which represent data in square foots'>
+# </editor-fold>
+# <editor-fold desc='Dropping columns which represent data in square foots'>
 housing = housing.drop(["sqft_living", "sqft_lot", "sqft_above", "sqft_basement"], axis=1)
-#</editor-fold>
+# </editor-fold>
 
-#Creating a price category
+# Creating a price category
 maximum = housing['price'].max()/divider
 minimum = housing['price'].min()/divider
 
-#Creating bins using the price category
+# Creating bins using the price category
+
+
 def create_bins(maximum, minimum):
-    x= [maximum+1]
+    x = [maximum+1]
     difference = (maximum-minimum)/numberOfBins
     for i in range(numberOfBins):
         if i == 0:
@@ -95,21 +82,23 @@ def create_bins(maximum, minimum):
             x.append(int((minimum + (difference * i))))
     x.sort()
     return x
+
+
 housing['price_cat'] = pd.cut(housing['price']/divider, bins= create_bins(maximum, minimum), labels = [1,2,3,4])
 
-#Spliting data in train and test sets
+# Splitting data in train and test sets
 split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
 for train_index, test_index in split.split(housing, housing["price_cat"]):
     strat_train_set = housing.loc[train_index]
     strat_test_set = housing.loc[test_index]
 
-#Deleting price_category from train and test sets
+# Deleting price_category from train and test sets
 for set_ in (strat_train_set, strat_test_set):
     set_.drop("price_cat", axis=1, inplace=True)
 
 
 housing = strat_train_set.copy()
-#Creating copy of dataset for virtualization
+# Creating copy of dataset for virtualization
 virt = housing.copy()
 virt['all_rooms'] = virt['bathrooms'] + virt['bedrooms']
 virt.loc[virt.all_rooms== 0, 'all_rooms'] = 1
@@ -122,7 +111,7 @@ corr_matrix = virt.corr()
 virt_num = virt
 
 
-#Getting rid of outliers
+# Getting rid of outliers
 def get_rid_of_outliers(num_data):
     Q1 = num_data.quantile(0.3)
     Q3 = num_data.quantile(0.7)
@@ -130,13 +119,13 @@ def get_rid_of_outliers(num_data):
     return num_data[~((num_data < (Q1 - 1.5 * IQR)) |(num_data > (Q3 + 1.5 * IQR))).any(axis=1)]
 
 
-#prepare for machine learning
-#housing = strat_train_set.drop(['id'], axis=1)
+# prepare for machine learning
+# housing = strat_train_set.drop(['id'], axis=1)
 housing_labels = strat_train_set["price"].copy()
 
-#Get only numeric values
-#housing_num = strat_train_set.drop("date", axis=1)
-#Distinguish housing categories for processing : get year and month
+# Get only numeric values
+# housing_num = strat_train_set.drop("date", axis=1)
+# Distinguish housing categories for processing : get year and month
 
 
 # def transform_categorital(data):
@@ -157,18 +146,20 @@ def add_additional_attributes(data):
     x['zipcode_cat'] = np.where(x['price'].between(500000, 750000), 1, x['zipcode_cat'])
     x=x.drop('price', axis=1)
     data = pd.merge(x, data, how='right', on=['zipcode'])
-    data=data.drop('zipcode', axis =1)
+    data = data.drop('zipcode', axis=1)
     train_set = data.copy()
     train_set['age'] = datetime.date.today().year - train_set['yr_built']
     bins = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200]
     labels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     train_set['binned_age'] = pd.cut(train_set['age'], bins=bins, labels=labels)
 
-    y = train_set[["binned_age", "price"]].groupby(["binned_age"], as_index=False).mean().sort_values(by='price',  ascending=False)
+    y = train_set[["binned_age", "price"]].groupby(["binned_age"], as_index=False).mean().sort_values(by='price',
+                                                                                                      ascending=False)
 
     data['binned_age'] = 0
     data['binned_age'] = np.where(train_set['binned_age'].between(4, 9), 1, data['binned_age'])
     return data
+
 
 def transform_data(data):
     data_additional_attributes = add_additional_attributes(data)
@@ -177,11 +168,11 @@ def transform_data(data):
     data_connected = pd.merge(data_filtered, data_additional_attributes, how='inner',
                               on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living'])
     data_no_duplicates = data_connected.drop_duplicates(['id'])
-    data_deleted_columns = data_no_duplicates.drop(['bathrooms','yr_renovated','view', 'bedrooms', 'floors','condition'], axis=1)
+    data_deleted_columns = data_no_duplicates.drop(['bathrooms', 'yr_renovated','view', 'bedrooms', 'floors',
+                                                    'condition'], axis=1)
     cols = [col for col in data_deleted_columns.columns if col not in ['price', 'id']]
     data_scaled = MinMaxScaler().fit_transform(data_no_duplicates[cols])
     return data_scaled
-
 
 
 def get_labels(data):
@@ -197,7 +188,7 @@ def get_labels(data):
 
 
 housing_prepared = transform_data(housing)
-housing_labels = get_labels((housing))
+housing_labels = get_labels(housing)
 test_X= transform_data(strat_test_set)
 test_y = get_labels(strat_test_set)
 
@@ -273,7 +264,7 @@ def gridSearchCV(X, Y):
                    'clf__positive':[True, False],
                    'clf__selection': ['random', 'cyclic']}
 
-    parameters8 = {'clf__alpha': [0.,1.,5.,0.],
+    parameters8 = {'clf__alpha': [0., 1., 5., 0.],
                     'clf__l1_ratio': [0.1,0.5,0.9],
                     'clf__fit_intercept': [False, True],
                     'clf__normalize': [True, False],
@@ -364,8 +355,6 @@ model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
                               min_data_in_leaf =6, min_sum_hessian_in_leaf = 11)
 
 
-
-
 class StackingAveragedModels(BaseEstimator, RegressorMixin, TransformerMixin):
     def __init__(self, base_models, meta_model, n_folds=5):
         self.base_models = base_models
@@ -400,10 +389,12 @@ class StackingAveragedModels(BaseEstimator, RegressorMixin, TransformerMixin):
             for base_models in self.base_models_])
         return self.meta_model_.predict(meta_features)
 
+
 def rmsle_cv_(model):
     cv = KFold(n_splits=5, shuffle=True, random_state=42)
     score = np.sqrt(- cross_val_score(model, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=cv))
     return(score)
+
 
 def stacking_avg_for_all_combinations_of_models(models):
     for i in range(len(models)) :
@@ -416,11 +407,11 @@ def stacking_avg_for_all_combinations_of_models(models):
         print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
 
 models = [forest_reg ,GBoost, model_xgb,  model_lgb]
-#checkAllModels(models)
+checkAllModels(models)
 #stacking_avg_for_all_combinations_of_models(models)
 #averaged_models = StackingAveragedModels(base_models=(GBoost, model_xgb,  model_lgb), meta_model =forest_reg)
 #score = rmsle_cv_(averaged_models)
 #print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
 
 # gridSearchCV(housing_prepared, housing_labels)
-pickle.dump(forest_reg, open('model.pkl', 'wb'))
+# pickle.dump(forest_reg, open('model.pkl', 'wb'))

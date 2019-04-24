@@ -13,7 +13,8 @@
 <nav class="navbar navbar-inverse">
 <div class="container-fluid">
 <div class="navbar-header">
-      <a class="navbar-brand" href="#">Price Predictions</a>
+<!--      <a class="navbar-brand" href="#">Price Predictions</a>-->
+     <img class="w3-image" src="{{url_for('static', filename='img/logo.png')}}" alt="Home" width="50%" height="50%"/>
 </div>
 <ul class="nav navbar-nav">
 	<li><a href="{{ url_for('main') }}">Home</a></li>
@@ -21,10 +22,13 @@
 	<li><a href="{{ url_for('main') }}#predictions">Predictions</a></li>
 	<li><a href="{{ url_for('main') }}#contact">Contact</a></li>
 </ul>
-<ul class="nav navbar-nav navbar-right">
+    <ul class="nav navbar-nav navbar-right">
       <li><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-user"></span> For agents</a></li>
     </ul>
 </div>
+    <div class="logo">
+
+    </div>
 </nav>
 
 <header class="w3-display-container w3-content w3-wide" style="max-width:1500px;" id="home">
@@ -574,7 +578,7 @@ House market is very vast and difficult to understand.
 <div id="predictedPrice" >
 Predicted price is: <b id="price"></b>
 </div>
- </div>
+</div>
 </div> 
 </div>
 
@@ -598,7 +602,5 @@ Predicted price is: <b id="price"></b>
 <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
 
 <script  src="{{ url_for('static', filename='sliders.js')}}"></script>
-
-
 </body>
 </html>

@@ -1,6 +1,6 @@
+from create_Tokens import *
 import random
 import datetime
-
 
 class House:
     def __init__(self, id, date=None, price=0, bedrooms=0, bathrooms=0, sqft_living=0, sqft_lot=0,
@@ -36,9 +36,14 @@ class House:
 
 def create_house():
     id = "\"" + str(round(random.randint(1, 600000) * datetime.datetime.now().second+0.1/55 / 0.02)) + "\""
-    return House(id)
+    result = connect_to_houses().find_one({"id": id})
+    if result is not None:
+        create_house()
+    else:
+        return House(id)
 
 
 def set_properties(house, dictionary):
+
     house.__call__(dictionary)
     return house

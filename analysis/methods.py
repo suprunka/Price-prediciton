@@ -1,2 +1,0 @@
-def yolo():
-    return("gfd")

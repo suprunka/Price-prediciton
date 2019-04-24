@@ -1,14 +1,25 @@
 from dbConnection import *
 import hashlib, binascii, os, smtplib
+
+
 def connect_to_tokens():
     connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
     db = pymongo.database.Database(connection, 'Project')
     collection = pymongo.collection.Collection(db, 'Tokens')
     return collection
+
+
 def connect_to_users():
     connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
     db = pymongo.database.Database(connection, 'Project')
     collection = pymongo.collection.Collection(db, 'Users')
+    return collection
+
+
+def connect_to_houses():
+    connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
+    db = pymongo.database.Database(connection, 'Project')
+    collection = pymongo.collection.Collection(db, 'Houses')
     return collection
 
 
@@ -91,7 +102,8 @@ def send_mail(to, message):
     server = smtplib.SMTP('smtp.gmail.com', 25)
     server.starttls()
     server.login('predproject2004@gmail.com', '90809988Qwe')
-    server.sendmail('predproject2004@gmail.com', to, message)
+    msg = "Dear " + to + ". " + message
+    server.sendmail('predproject2004@gmail.com', to, msg)
 
 
 def hash_password(password):
@@ -113,9 +125,12 @@ def check_password(password, stored):
 def delete_account(token, password, email):
     result = connect_to_users().delete_one({'token': token, 'password': hash_password(password), 'email': email})
     if result.deleted_count == 1:
-        connect_to_tokens().update(connect_to_tokens().find_one({'token': token}), {"$set": {'isUsed': False}})
+        connect_to_tokens().update_one(connect_to_tokens().find_one({'token': token}), {"$set": {'isUsed': False}})
         msg = 'Your account has been deleted'
         send_mail(email, msg)
+
+
 # change_password('jak', 108758456820, 'mynewpassword')
 # log_in('jak', 'mynewpassword')
-print(insert_1000_tokens())
+# print(insert_1000_tokens())
+# send_mail('jakub23sa@wp.pl', 'siema')
