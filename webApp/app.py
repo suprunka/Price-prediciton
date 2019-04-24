@@ -52,7 +52,7 @@ def add_house():
 @app.route('/change_password', methods=['GET', 'POST'])
 def change_password():
     form_value = request.form
-    mail = form_value["mail"]
+    mail = form_value["email"]
     password = form_value["password"]
     password2 = form_value["passwordCon"]
     token = form_value["token"]
@@ -76,7 +76,7 @@ def check_credentials():
 @app.route('/register_agent_check', methods=['GET', 'POST'])
 def register_agent_check():
     form_value = request.form
-    mail = form_value["mail"]
+    mail = form_value["email"]
     password = form_value["password"]
     password2 = form_value["passwordCon"]
     token = form_value["token"]

@@ -134,6 +134,7 @@ housing_labels = strat_train_set["price"].copy()
 #     return return_data.drop('date',axis=1)
 
 def add_additional_attributes(data):
+    data['floors']=  data['floors'].astype(float)
     data['all_rooms'] = data['bathrooms'] + data['bedrooms']
     data.loc[data.all_rooms == 0, 'all_rooms'] = 1
     data['avg_room_size'] = data['sqm_living']/ data['all_rooms']

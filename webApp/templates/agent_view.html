@@ -8,7 +8,50 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='agent.css') }}">
+<meta name="viewport" content="initial-scale=1.0, width=device-width" />
+<link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.0/mapsjs-ui.css?dp-version=1549984893" />
+<script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-core.js"></script>
+<script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-service.js"></script>
+<script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-ui.js"></script>
+<script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-mapevents.js"></script>
 
+<style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      #sendo
+{
+    margin-left: 50%;
+
+}
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 25%;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        font-family: 'Roboto','sans-serif';
+        line-height: 30px;
+        padding-left: 10px;
+      }
+     .row
+ {
+ min-height:40px;
+ }
+
+    </style>
 </head>
 <body>
 <nav class="navbar navbar-inverse">
@@ -34,7 +77,7 @@
       Square meters of the home
     </div>
     <div class="col-md-3">
-		<input required type="number" size="65" name="sqmtliving" min="18" max="1000000" >	</div>
+		<input required type="number" size="65" name="sqft_living" min="18" max="1000000" >	</div>
 	 <div class="col-md-3">
       Bedrooms
     </div>
@@ -47,7 +90,7 @@
       Square meters of the lot
     </div>
     <div class="col-md-3">
-		<input required type="number" size="65" name="sqmtlot" min="0" max="10000">
+		<input required type="number" size="65" name="sqft_lot" min="0" max="10000">
 		</div>
 	<div class="col-md-3">
       Bathrooms
@@ -60,13 +103,13 @@
     <div class="col-md-3">
    Height of house </div>
     <div class="col-md-3">
-		<input required type="number" size="65" name="height" min="0" max="10000">
+		<input required type="number" size="65" name="sqft_above" min="0" max="10000">
 		</div>
 	<div class="col-md-3">
       Square meters of the basement
     </div>
     <div class="col-md-3">
-		<input required type="number" size="65" name="sqmtbasement" min="0" max="1000">
+		<input required type="number" size="65" name="sqft_basement" min="0" max="1000">
 	</div>
   </div>
       <div class="row">
@@ -74,7 +117,7 @@
       Built year
     </div>
     <div class="col-md-3">
-<select name="built-year">
+<select name="yr_built">
     <option value="2018">2018</option>
     <option value="2017">2017</option>
     <option value="2016">2016</option>
@@ -296,7 +339,7 @@
       Renovation year
     </div>
     <div class="col-md-3">
-<select name="renovation-year">
+<select name="yr_renovated">
      <option value="2018">2018</option>
     <option value="2017">2017</option>
     <option value="2016">2016</option>
@@ -522,15 +565,13 @@
     <input id="rs-range-line-floor" class="rs-range" name="floors" type="range" value="0" min="0" max="50">
 	</div>
 	<div class="col-md-3">
-      Zipcode
+           Grade(King County grading system)
+
     </div>
     <div class="col-md-3">
-<select name="zipcode">
-		<option value="92029">92029</option>
-		<option value="92022">92022</option>
-		<option value="92021" >920219</option>
-		<option value="92026">92026</option>
-</select>
+<span id="rs-bullet-grade" class="rs-label">0</span>
+    <input required id="rs-range-line-grade" name="grade" class="rs-range" type="range" value="0"  min="0" max="50">
+
 	</div>
   </div>
     <div class="row">
@@ -539,29 +580,76 @@
     </div>
     <div class="col-md-3">
 <span id="rs-bullet-condition" class="rs-label">0</span>
-    <input required id="rs-range-line-condition" name="condition" class="rs-range" type="range" min="0" max="50">
+    <input required id="rs-range-line-condition" name="condition" class="rs-range" value="0" type="range" min="0" max="50">
 	</div>
     <div class="col-md-3">
-     Grade(King County grading system)
     </div>
     <div class="col-md-3">
-<span id="rs-bullet-grade" class="rs-label">0</span>
-    <input required id="rs-range-line-grade" name="grade" class="rs-range" type="range"  min="0" max="50">
 	</div>
   </div>
+<div class="row">
+    <div class="col-md-6" >
+         <div class="row">
+             <div class="col-md-6">
+                                 <input hidden type="text" id="long" step="any" name="lat"  />
 
-	 <div class="row">
-         <div class="col-md-3">
-Price    </div>
-    <div class="col-md-3">
-    <input required type="number" name="price"  min="0" max="10000000000">
-	</div>
-        <div class="col-md-6">
-		<input value="Submit" type="submit" id="sendInfo" class="btn btn-secondary btn-lg" style="color:black;margin-left: 10vw;width: 55%" ></div>
-	</div>
+             </div>
+            <div class="col-md-6">
+                <input hidden type="text" id="lat" step="any" name="lat"  />
+            </div>
+         </div>
+        <div class="row">
+            <div class="col-md-6">
+                Zipcode
+            </div>
+            <div class="col-md-6" id="zipcode">
+
+            </div>
+        </div>
+
+                <div class="row">
+            <div class="col-md-6">
+                 Address
+
+            </div>
+            <div class="col-md-6">
+                 <input required type="text" id="address" name="address">
+            </div>
+        </div>
+
+
+            <div class="row">
+                <button  type="button" onclick="confirmAddress()" id="sendo" class="btn btn-info "  >Find address</button>
+        </div>
+                 <div class="row">
+                         <div class="col-md-6">
+                      Price
+                         </div>
+                    <div class="col-md-6">
+                    <input required type="number" name="price"  min="0" max="10000000000">
+                    </div></div>
+
+        <div class="row">
+            		<input value="Submit" type="submit" id="sendInfo" class="btn btn-secondary btn-lg" style="color:black;margin-left: 10vw;margin-top: 2vh;width: 55%" />
+        </div>
+
+    </div>
+
+    <div class="col-md-6">
+        <div id="map" style=" width:90%; height:50vh; background: grey" />
+
+    </div>
+
+</div>
+
+    </form>
 </form>
+</div>
+  <script  type="text/javascript" charset="UTF-8" >
 
- </div>
-<link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+  </script>
+<script  src="{{ url_for('static', filename='sliders.js')}}"></script>
+<script  src="{{ url_for('static', filename='maps.js')}}"></script>
+
 
 </body></html>

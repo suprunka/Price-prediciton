@@ -3,7 +3,6 @@ from pandas import DataFrame
 import pymongo
 from house import *
 
-
 def connect_to_database():
     connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
     db = pymongo.database.Database(connection, 'Project')
@@ -11,9 +10,10 @@ def connect_to_database():
     return collection
 
 
+
 def get_data():
     result = DataFrame(list(connect_to_database().find({}, {'_id': 0})))
-    return result
+    return  result
 
 
 def get_specific(id):
@@ -28,7 +28,7 @@ def delete_specific(id):
 def add_house_test():
     connect_to_database().insert_one(set_properties(create_house(), {'price': 53200, 'lat': 123}).__dict__)
 
-
 def add_house(house):
     connect_to_database().insert_one(house.__dict__)
+
 

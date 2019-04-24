@@ -45,87 +45,9 @@ min-height : 90hv;
 
 }
 
-
-#predictions
-{
-background-image:url("img/balance.jpg");
-color: #f2f2f2;
-
-
-}
-#pred_box
-{
-background-color:black;
-opacity:0.88;
-
-
-}
-form
-{
-
-font-size: 16px;
-line-height: 0;
-word-spacing: 0px;
-}
-.rs-range
-{
-
-    max-width: 35vh;
-}
-.rs-label {
-
-    position: relative;
-    display: block;
-	height:1vh;
-    background: transparent;
-    text-align: center;
-    font-weight: bold;
-    margin-left: -18px;
-    left: attr(value);
-    font-size: 16px;
-   }
- .row
- {
- min-height:70px;
- }
  select, input
  {
 	min-width : 35vh;
 	color:black;
  }
-#predictedPrice
-{
-margin-bottom:20px;
-width:40vh;
-color:white;
-background-color:#e43a01;
 
-  font-style: normal;
-
-text-align:center;
-float:right;
-}
-#contact
-{
-background-image: url("img/couple.jpg");
-}
-.contactbox
-{
-background-color:black;
-width: 65vh;
-height:75vh;
-opacity:0.80;
-color:white;
-font-weight:bold;
-filter: alpha(opacity=60); /* For IE8 and earlier */
-
-}
-.contactboxcon
-{
-padding:30px;
-}
-.contactboxcon_p
-{
-font-size:13px;
-padding:20px;
-}
