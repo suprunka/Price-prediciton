@@ -6,6 +6,9 @@ from flask import Flask, render_template, redirect, url_for, request, jsonify
 import database.house as house_db
 import dbConnection as db
 import create_Tokens as account
+import json
+from bson import json_util
+from bson.json_util import dumps
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -96,6 +99,22 @@ def register_agent_ch7eck():
     x= model.predict(np.array(form_value[['bedrooms', 'bathrooms', 'condition', 'floors', 'grade', 'lat', 'long',  'yr_built','yr_renovated', 'zipcode']]))
     return render_template('register.html', result=''+x)
 
+
+@app.route('/statistics', methods=['GET', 'POST'])
+def statistics():
+    FIELDS = {'price': True, 'bedrooms': True, 'bathrooms': True,
+              'sqft_living': True, 'sqft_lot': True, 'date': True}
+    projects = account.connect_to_houses().find(projection=FIELDS)
+    json_projects=[]
+    for project in projects:
+        json_projects.append(project)
+    json_projects = json.dumps(json_projects, default=json_util.default)
+    return json_projects
+
+
+@app.route('/stats', methods=['GET', 'POST'])
+def stats():
+    return render_template('statictics.html')
 
 
 if __name__ == '__main__':
