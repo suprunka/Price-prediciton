@@ -16,6 +16,11 @@ def get_data():
     return  result
 
 
+def get_data_for_pred():
+    result = connect_to_database().find({}, {'_id': 0})
+    return  result
+
+
 def get_specific(id):
     result = connect_to_database().find({'id': '"%s"'%id})
     return result
