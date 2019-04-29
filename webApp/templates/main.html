@@ -2,17 +2,19 @@
 <html>
 <title>Houses prediction website</title>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='main_page.css') }}">
+<meta name="viewport" content="initial-scale=1.0, width=device-width" />
+<link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.0/mapsjs-ui.css?dp-version=1549984893" />
 <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-core.js"></script>
 <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-service.js"></script>
 <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-ui.js"></script>
 <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-mapevents.js"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main_page.css') }}">
 
 <body>
 <nav class="navbar navbar-inverse">
@@ -78,14 +80,14 @@ House market is very vast and difficult to understand.
       Bathrooms
     </div>
     <div class="col-md-3">
-		<input required type="number" size="65" name="bathrooms" min="0" max="100" >
+		<input required type="number" size="65" name="bathrooms" min="1" max="100" >
 	</div>
   </div>
      <div class="row">
     <div class="col-md-3">
    Height of house </div>
     <div class="col-md-3">
-		<input required type="number" size="65" name="sqft_above" min="0" max="10000">
+		<input required type="number" size="65" name="sqft_above" min="1" max="10000">
 		</div>
 	<div class="col-md-3">
       Square meters of the basement
@@ -544,7 +546,7 @@ House market is very vast and difficult to understand.
     </div>
     <div class="col-md-3">
 <span id="rs-bullet-floor" class="rs-label">0</span>
-    <input id="rs-range-line-floor" class="rs-range" name="floors" type="range" value="0" min="0" max="50">
+    <input id="rs-range-line-floor" class="rs-range" name="floors" type="range" value=1 type="range" min=1 max=10>
 	</div>
 	<div class="col-md-3">
            Grade(King County grading system)
@@ -552,7 +554,7 @@ House market is very vast and difficult to understand.
     </div>
     <div class="col-md-3">
 <span id="rs-bullet-grade" class="rs-label">0</span>
-    <input required id="rs-range-line-grade" name="grade" class="rs-range" type="range" value="0"  min="0" max="50">
+    <input required id="rs-range-line-grade" name="grade" class="rs-range" type="range" value=1 type="range" min=1 max=10>
 
 	</div>
   </div>
@@ -562,7 +564,7 @@ House market is very vast and difficult to understand.
     </div>
     <div class="col-md-3">
 <span id="rs-bullet-condition" class="rs-label">0</span>
-    <input required id="rs-range-line-condition" name="condition" class="rs-range" value="0" type="range" min="0" max="50">
+    <input required id="rs-range-line-condition" name="condition" class="rs-range" value=1 type="range" min=1 max=10>
 	</div>
     <div class="col-md-3">
     </div>
@@ -573,7 +575,7 @@ House market is very vast and difficult to understand.
     <div class="col-md-6" >
          <div class="row">
              <div class="col-md-6">
-                                 <input hidden type="text" id="long" step="any" name="lat"  />
+                                 <input hidden type="text" id="long" step="any" name="long"  />
 
              </div>
             <div class="col-md-6">
@@ -584,8 +586,10 @@ House market is very vast and difficult to understand.
             <div class="col-md-6">
                 Zipcode
             </div>
-            <div class="col-md-6" id="zipcode">
+            <div class="col-md-6" >
+                <select name="zipcode" id = "zipcode">
 
+                </select>
             </div>
         </div>
 
@@ -595,7 +599,7 @@ House market is very vast and difficult to understand.
 
             </div>
             <div class="col-md-6">
-                 <input required type="text" id="address" name="address">
+                 <input  type="text" id="address" >
             </div>
         </div>
 
@@ -603,13 +607,7 @@ House market is very vast and difficult to understand.
             <div class="row">
                 <button  type="button" onclick="confirmAddress()" id="sendo" class="btn btn-info "  >Find address</button>
         </div>
-                 <div class="row">
-                         <div class="col-md-6">
-                      Price
-                         </div>
-                    <div class="col-md-6">
-                    <input required type="number" name="price"  min="0" max="10000000000">
-                    </div></div>
+
 
         <div class="row">
             		<input value="Submit" type="submit" id="sendInfo" class="btn btn-secondary btn-lg" style="color:black;margin-left: 10vw;margin-top: 2vh;width: 55%" />
@@ -623,12 +621,18 @@ House market is very vast and difficult to understand.
     </div>
 
 </div>
+        <div class="row">
+        <div id="predictedPrice2">
+                 <p>
+                     Predicted price is: <b>{{ data}}</b> $
+                 </p>
+        </div>
+    </div>
+
+
 
     </form>
-</form>
-<div id="predictedPrice" >
-Predicted price is: <b id="price"></b>
-</div>
+
 </div>
 </div> 
 </div>
@@ -650,8 +654,36 @@ Predicted price is: <b id="price"></b>
 </div>
 </div> 
 </div>
-<script  src="{{ url_for('static', filename='maps.js')}}"></script>
+<script  src="{{ url_for('static', filename='js/maps.js')}}"></script>
+<script>
 
-<script  src="{{ url_for('static', filename='sliders.js')}}"></script>
+
+  var zipcodes = ["98101", "98102", "98103", "98104", "98105", "98106", "98107", "98108", "98109", "98110", "98112",
+   "98115", "98116", "98117", "98118", "98119", "98121", "98122", "98125", "98126", "98131", "98133", "98134", "98136",
+    "98144", "98146", "98148", "98154", "98155", "98158", "98161", "98164", "98166", "98168", "98174", "98177", "98178",
+     "98188", "98198", "98199", "98111", "98113", "98114", "98124", "98127", "98138", "98139", "98141", "98145",
+      "98160", "98165", "98175", "98194", "98129", "98170", "98181", "98185", "98190", "98191", "98195"];
+
+
+function addInput(selectID) {
+    select = document.getElementById(selectID);
+    for (var i = 0; i < zipcodes.length; i++) {
+        var opt = document.createElement('option');
+        opt.value = zipcodes[i];
+        opt.innerHTML = zipcodes[i];
+        select.add(opt);
+    }
+}
+addInput("zipcode")
+$('predictedPrice2').hide();
+
+</script>
+<script  src="{{ url_for('static', filename='js/sliders.js')}}"></script>
+{% if data %}
+<script>
+window.location = (""+window.location).replace(/#[A-Za-z0-9_]*$/,'')+"#predictions"
+$("predictedPrice").show();
+</script>
+{% endif %}
 </body>
 </html>

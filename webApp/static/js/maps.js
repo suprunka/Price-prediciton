@@ -5,15 +5,18 @@
      "98188", "98198", "98199", "98111", "98113", "98114", "98124", "98127", "98138", "98139", "98141", "98145",
       "98160", "98165", "98175", "98194", "98129", "98170", "98181", "98185", "98190", "98191", "98195"];
 
-function addInput(divName) {
-    var select = $("<select/>")
-    $.each(zipcodes, function(a, b) {
-        select.append($("<option/>").attr("value", b).text(b));
-    });
-    $("#" + divName).append(select);
+
+function addInput(selectID)
+{
+    select = document.getElementById(selectID);
+    for (var i = 0; i<=zipcodes.length; i++){
+    var opt = document.createElement('option');
+    opt.value = zipcodes[i];
+    opt.innerHTML = zipcodes[i];
+    select.add( opt );
+    }
 }
 
-addInput("zipcode")
 
 
 function confirmAddress() {
@@ -163,4 +166,5 @@ function addLocationsToAddress(locations){
 // Now use the map as required...
 addDraggableMarker(map, behavior, 47.5, -122.2);
 geocode(platform);
+addInput("zipcode")
 
