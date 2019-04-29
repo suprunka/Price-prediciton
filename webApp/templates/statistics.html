@@ -2,6 +2,8 @@
 <html>
   <head>
     <title>Housing Statistics</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
     <link href="http://cdn.pydata.org/bokeh/release/bokeh-1.1.0.min.css" rel="stylesheet">
     <link href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-1.1.0.min.css" rel="stylesheet">
   </head>
@@ -15,9 +17,19 @@
       <option value="p6">Chart 6</option>
       <option value="p7">Chart 7</option>
     </select>
-
-    function show(chart){
-      var choice = document.getElementById("chart");
+<script>
+    function show(chart) {
+      var choice = $("chart").val();
+      $.ajax({
+        type: 'POST',
+        url: "/stats",
+        data: {which: choice},
+        dataType: "text",
+        success: function (data) {
+        }
+      });
+    }
+</script>
 
 
 
