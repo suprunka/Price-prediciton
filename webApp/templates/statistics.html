@@ -6,6 +6,20 @@
     <link href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-1.1.0.min.css" rel="stylesheet">
   </head>
   <body>
+    <select id="chart" onchange="show(this)">
+      <option value="p1">Grades and average price distribution</option>
+      <option value="p2">Houses condition chart</option>
+      <option value="p3">Chart 3</option>
+      <option value="p4">Chart 4</option>
+      <option value="p5">Chart 5</option>
+      <option value="p6">Chart 6</option>
+      <option value="p7">Chart 7</option>
+    </select>
+
+    function show(chart){
+      var
+    }
+
     {{ the_div|safe }}
     <script src="http://cdn.pydata.org/bokeh/release/bokeh-1.1.0.min.js"></script>
     <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-1.1.0.min.js"></script>

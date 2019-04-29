@@ -118,10 +118,8 @@ def statistics():
 
 @app.route('/stats', methods=['GET', 'POST'])
 def stats():
-    script, div = make_diagrams()
+    script, div = make_diagrams("p1")
     return render_template("statistics.html", the_div=div, the_script=script)
-
-
 
 
 if __name__ == '__main__':
