@@ -117,8 +117,8 @@ def statistics():
 
 
 @app.route('/stats', methods=['GET', 'POST'])
-def stats():
-    script, div = make_diagrams("p1")
+def stats(which=None):
+    script, div = make_diagrams(which)
     return render_template("statistics.html", the_div=div, the_script=script)
 
 
