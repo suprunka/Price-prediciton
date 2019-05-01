@@ -6,11 +6,16 @@ from flask import Flask, render_template, redirect, url_for, request, jsonify
 import database.house as house_db
 import dbConnection as db
 import create_Tokens as account
+import prepare_for_prediction as pred
 import json
 from bson import json_util
 from analysis.dashboard_diagrams import *
 from bokeh.embed import components
 from bson.json_util import dumps
+import sys
+sys.path.insert(0, 'P:/Python/project/analysis')
+import averaged_models
+
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -96,12 +101,14 @@ def register_agent_check():
         return render_template('agent_view.html')
     return render_template('register.html', result='error')
 
+
 @app.route('/predict', methods=['GET', 'POST'])
 def register_agent_ch7eck():
-    form_value = request.form
-
-    x= model.predict(np.array(form_value[['bedrooms', 'bathrooms', 'condition', 'floors', 'grade', 'lat', 'long',  'yr_built','yr_renovated', 'zipcode']]))
-    return render_template('register.html', result=''+x)
+    form_value = request.form.to_dict()
+    data = pred.prepare_data(form_value)
+    x= model.predict(data)
+    result = x[0]
+    return render_template('main.html',data= result)
 
 
 @app.route('/statistics', methods=['GET', 'POST'])
@@ -126,7 +133,7 @@ def stats():
 
 
 if __name__ == '__main__':
-    model = pickle.load(open('../analysis/model.pkl', 'rb'))
+    model = pickle.load(open('../analysis/modelfin.pkl', 'rb'))
     app.run()
 
 

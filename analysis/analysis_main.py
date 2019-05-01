@@ -19,6 +19,7 @@ from sklearn.model_selection import KFold, cross_val_score
 import xgboost as xgb
 import lightgbm as lgb
 from dbConnection import *
+from averaged_models import StackingAveragedModels
 import math
 
 
@@ -141,6 +142,7 @@ def add_additional_attributes(data):
     data['avg_floor_sq'] = data['sqm_above'] / data['floors']
     data['overall'] = data['grade'] + data['condition']
     x = data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values(by='price', ascending=False)
+    print(x[['zipcode', 'price']].head(77))
     x['zipcode_cat'] = 0
     x['zipcode_cat'] = np.where(x['price'] > 1000000, 3, x['zipcode_cat'])
     x['zipcode_cat'] = np.where(x['price'].between(750000, 1000000), 2, x['zipcode_cat'])
@@ -357,40 +359,6 @@ model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
                               min_data_in_leaf =6, min_sum_hessian_in_leaf = 11)
 
 
-class StackingAveragedModels(BaseEstimator, RegressorMixin, TransformerMixin):
-    def __init__(self, base_models, meta_model, n_folds=5):
-        self.base_models = base_models
-        self.meta_model = meta_model
-        self.n_folds = n_folds
-
-    # We again fit the data on clones of the original models
-    def fit(self, X, y):
-        self.base_models_ = [list() for x in self.base_models]
-        self.meta_model_ = clone(self.meta_model)
-        kfold = KFold(n_splits=self.n_folds, shuffle=True, random_state=156)
-
-        # Train cloned base models then create out-of-fold predictions
-        # that are needed to train the cloned meta-model
-        out_of_fold_predictions = np.zeros((X.shape[0], len(self.base_models)))
-        for i, model in enumerate(self.base_models):
-            for train_index, holdout_index in kfold.split(X, y):
-                instance = clone(model)
-                self.base_models_[i].append(instance)
-                instance.fit(X[train_index], y[train_index])
-                y_pred = instance.predict(X[holdout_index])
-                out_of_fold_predictions[holdout_index, i] = y_pred
-        # Now train the cloned  meta-model using the out-of-fold predictions as new feature
-        self.meta_model_.fit(out_of_fold_predictions, y)
-        return self
-
-    # Do the predictions of all base models on the test data and use the averaged predictions as
-    # meta-features for the final prediction which is done by the meta-model
-    def predict(self, X):
-        meta_features = np.column_stack([
-            np.column_stack([model.predict(X) for model in base_models]).mean(axis=1)
-            for base_models in self.base_models_])
-        return self.meta_model_.predict(meta_features)
-
 
 def rmsle_cv_(model):
     cv = KFold(n_splits=5, shuffle=True, random_state=42)
@@ -398,26 +366,26 @@ def rmsle_cv_(model):
     return(score)
 
 
-def stacking_avg_for_all_combinations_of_models(models):
-    for i in range(len(models)) :
-        averaged_models = StackingAveragedModels(base_models=(models[math.fabs(len(models)-i)],
-        models[math.fabs(len(models)-1-i)],models[math.fabs(len(models)-2-i)],models[math.fabs(len(models)-3-i)],
-        models[math.fabs(len(models)-4-i)],models[math.fabs(len(models)-5-i)],models[math.fabs(len(models)-6-i)],
-        models[math.fabs(len(models)-7-i)],models[math.fabs(len(models)-8-i)],models[math.fabs(len(models)-9-i)],
-        models[math.fabs(len(models)-10-i)] ), meta_model=models[math.fabs(len(models)-11-i)])
-        score = rmsle_cv_(averaged_models)
-        print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
+# def stacking_avg_for_all_combinations_of_models(models):
+#     for i in range(len(models)) :
+#         averaged_models = StackingAveragedModels(base_models=(models[math.fabs(len(models)-i)],
+#         models[math.fabs(len(models)-1-i)],models[math.fabs(len(models)-2-i)],models[math.fabs(len(models)-3-i)],
+#         models[math.fabs(len(models)-4-i)],models[math.fabs(len(models)-5-i)],models[math.fabs(len(models)-6-i)],
+#         models[math.fabs(len(models)-7-i)],models[math.fabs(len(models)-8-i)],models[math.fabs(len(models)-9-i)],
+#         models[math.fabs(len(models)-10-i)] ), meta_model=models[math.fabs(len(models)-11-i)])
+#         score = rmsle_cv_(averaged_models)
+#         print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
 
 models = [forest_reg ,GBoost, model_xgb,  model_lgb]
 #checkAllModels(models)
 #stacking_avg_for_all_combinations_of_models(models)
-#averaged_models = StackingAveragedModels(base_models=(GBoost, model_xgb,  model_lgb), meta_model =forest_reg)
-#averaged_models.fit(housing_prepared, housing_labels)
+averaged_models = StackingAveragedModels(base_models=(GBoost, model_xgb,  model_lgb), meta_model =forest_reg)
+averaged_models.fit(housing_prepared, housing_labels)
 #score = rmsle_cv_(averaged_models)
 #print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
 
 # gridSearchCV(housing_prepared, housing_labels)
 print("przed")
 forest_reg.fit(housing_prepared, housing_labels)
-pickle.dump(forest_reg, open('model.pkl', 'wb'))
+pickle.dump(averaged_models, open('modelfin.pkl', 'wb'))
 print("koniec")

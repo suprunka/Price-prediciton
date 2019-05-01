@@ -42,14 +42,13 @@ word-spacing: 0px;
     font-size: 16px;
    }
 
-#predictedPrice2
+#predictedPrice
 {
-    padding:5vw;
     font-size: 16px;
     background-color: #d13d24;
     color:white;
-    width: 100%;
-    min-height: 5vh;
+    width: 90vw;
+    min-height: 2vh;
 
 }
 #contact
@@ -76,8 +75,7 @@ padding:30px;
 font-size:13px;
 padding:20px;
 }
-#sendo
-{
-    margin-left: 50%;
+  #sendo{
+        max-height: 5vh;
 
-}
+    }

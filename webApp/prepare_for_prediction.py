@@ -37,15 +37,15 @@ def add_additional_attributes(data):
     data.loc[data.floors == 0 , 'floors']=1
     data['avg_floor_sq'] = int(data['sqm_above']) / int(data['floors'])
     data['overall'] = int(data['grade']) + int(data['condition'])
-    #db_data = get_data_fromdb()
-    #db_data['zipcode'] = db_data['zipcode'].str[1:-1]
-    #db_data['zipcode'].astype(int)
-
-   # x = db_data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values(by='price', ascending=False)
-    data['zipcode_cat'] = 0
-    # data['zipcode_cat'] = np.where(x['price'] > 1000000, 3, data['zipcode_cat'])
-    # data['zipcode_cat'] = np.where(x['price'].between(750000, 1000000), 2, data['zipcode_cat'])
-    # data['zipcode_cat'] = np.where(x['price'].between(500000, 750000), 1, data['zipcode_cat'])
+    data['zipcode_cat'] =0
+    zipcode3 = [98039,	98004,	98040,	98112]
+    zipcode2 = [98102,98006,98109,98105,98119,98005,98075,98199]
+    zipcode1 =[98033,98053,98074,98077,98177,98116,98007,98122,
+                98052,98115,98027,98144,98008,98103,98029,98072,98117,
+                98136,98107,98065,98024,98034]
+    data.loc[data[data['zipcode'].isin(zipcode3)], 'zipcode_cat'] = 3
+    data.loc[data[data['zipcode'].isin(zipcode2)], 'zipcode_cat'] = 2
+    data.loc[data[data['zipcode'].isin(zipcode1)], 'zipcode_cat'] = 1
     data = data.drop('zipcode', axis=1)
 
     train_set = data.copy()
