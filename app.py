@@ -3,10 +3,10 @@ import pickle
 import numpy as np
 from flask_cors import CORS
 from flask import Flask, render_template, redirect, url_for, request, jsonify
-import database.house as house_db
-import dbConnection as db
-import create_Tokens as account
-import prepare_for_prediction as pred
+from .database import house as house_db
+from .database import dbConnection as db
+from .database  create_Tokens as account
+from . import prepare_for_prediction as pred
 import json
 from bson import json_util
 from analysis.dashboard_diagrams import *
