@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import datetime
-import dbConnection as db
+from database import dbConnection as db
 
 
 def get_data_fromdb():
