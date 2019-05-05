@@ -5,7 +5,7 @@ from flask_cors import CORS
 from flask import Flask, render_template, redirect, url_for, request, jsonify
 from .database import house as house_db
 from .database import dbConnection as db
-from .database  create_Tokens as account
+from .database import  create_Tokens as account
 from . import prepare_for_prediction as pred
 import json
 from bson import json_util
