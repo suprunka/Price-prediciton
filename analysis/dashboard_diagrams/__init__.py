@@ -8,7 +8,7 @@ from bokeh.models import CustomJS
 import pandas as pd
 from math import pi
 from bokeh.transform import cumsum
-from dbConnection import *
+from database.dbConnection import *
 from bokeh.models import HoverTool, BasicTickFormatter
 from bokeh.models.widgets import Tabs
 from bokeh.io import curdoc
