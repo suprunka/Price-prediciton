@@ -1,4 +1,4 @@
-from dbConnection import *
+from .dbConnection import *
 import hashlib, binascii, os, smtplib
 
 
