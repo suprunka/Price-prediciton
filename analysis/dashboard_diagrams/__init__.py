@@ -19,6 +19,7 @@ from bokeh.embed import components
 from ast import literal_eval
 
 
+
 def merc(lat, lon):
     r_major = 6378137.000
     x = r_major * math.radians(lon)
