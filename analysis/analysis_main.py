@@ -18,8 +18,8 @@ from sklearn.base import BaseEstimator, TransformerMixin, RegressorMixin, clone
 from sklearn.model_selection import KFold, cross_val_score
 import xgboost as xgb
 import lightgbm as lgb
-from dbConnection import *
-from averaged_models import StackingAveragedModels
+from database.dbConnection import *
+from .averaged_models import StackingAveragedModels
 import math
 
 
