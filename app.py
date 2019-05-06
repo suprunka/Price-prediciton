@@ -20,7 +20,8 @@ from analysis import averaged_models
 app = Flask(__name__)
 cors = CORS(app)
 app.static_folder = 'static'
-model = pickle.load(open('analysis/modelfin.pkl', 'rb'))
+sys.path.insert(0, 'P:/Python/project/analysis')
+model = pickle.load(open('modelfin.pkl', 'rb'))
 
 
 @app.route('/')
@@ -132,7 +133,8 @@ def stats():
 
 
 if __name__ == '__main__':
-    model = pickle.load(open('analysis/modelfin.pkl', 'rb'))
+    sys.path.insert(0, 'P:/Python/project/analysis')
+    model = pickle.load(open('modelfin.pkl', 'rb'))
     app.run()
 
 

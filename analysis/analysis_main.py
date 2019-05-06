@@ -19,7 +19,7 @@ from sklearn.model_selection import KFold, cross_val_score
 import xgboost as xgb
 import lightgbm as lgb
 from database.dbConnection import *
-from .averaged_models import StackingAveragedModels
+from analysis.averaged_models import StackingAveragedModels
 import math
 
 
@@ -142,7 +142,6 @@ def add_additional_attributes(data):
     data['avg_floor_sq'] = data['sqm_above'] / data['floors']
     data['overall'] = data['grade'] + data['condition']
     x = data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values(by='price', ascending=False)
-    print(x[['zipcode', 'price']].head(77))
     x['zipcode_cat'] = 0
     x['zipcode_cat'] = np.where(x['price'] > 1000000, 3, x['zipcode_cat'])
     x['zipcode_cat'] = np.where(x['price'].between(750000, 1000000), 2, x['zipcode_cat'])
