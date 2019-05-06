@@ -12,15 +12,12 @@ from bson import json_util
 # from analysis.dashboard_diagrams import *
 from bokeh.embed import components
 from bson.json_util import dumps
-import sys
-sys.path.insert(0, 'P:/Python/project/analysis')
 from analysis import averaged_models
 
 
 app = Flask(__name__)
 cors = CORS(app)
 app.static_folder = 'static'
-model = pickle.load(open('modelfin.pkl', 'rb'))
 
 
 @app.route('/')
