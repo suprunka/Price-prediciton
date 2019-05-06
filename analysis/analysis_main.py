@@ -16,8 +16,8 @@ from sklearn.linear_model import LinearRegression, ElasticNet, Lasso
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.base import BaseEstimator, TransformerMixin, RegressorMixin, clone
 from sklearn.model_selection import KFold, cross_val_score
-from xgboost import xgboost as xgb
-from lightgbm import lightgbm as lgb
+import xgboost as xgb
+import lightgbm as lgb
 from database.dbConnection import *
 from analysis.averaged_models import StackingAveragedModels
 import math

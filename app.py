@@ -14,6 +14,8 @@ from bokeh.embed import components
 from bson.json_util import dumps
 from analysis import averaged_models
 
+with open('modelfin.pkl', 'rb') as f:
+    model = pickle.load(f)
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -102,7 +104,6 @@ def register_agent_check():
 def register_agent_ch7eck():
     form_value = request.form.to_dict()
     data = pred.prepare_data(form_value)
-    model = pickle.load(open('modelfin.pkl', 'rb'))
     x = model.predict(data)
     result = x[0]
     return render_template('main.html',data= result)
