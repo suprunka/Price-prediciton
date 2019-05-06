@@ -102,7 +102,8 @@ def register_agent_check():
 def register_agent_ch7eck():
     form_value = request.form.to_dict()
     data = pred.prepare_data(form_value)
-    x= model.predict(data)
+    model = pickle.load(open('modelfin.pkl', 'rb'))
+    x = model.predict(data)
     result = x[0]
     return render_template('main.html',data= result)
 
@@ -129,7 +130,6 @@ def stats():
 
 
 if __name__ == '__main__':
-    model = pickle.load(open('modelfin.pkl', 'rb'))
     app.run()
 
 
