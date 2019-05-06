@@ -51,6 +51,13 @@ word-spacing: 0px;
     min-height: 2vh;
 
 }
+#predictedPriceParagraf
+{
+    font-size: 16px;
+    color:white;
+    padding: 10vh;
+}
+
 #contact
 {
 background-image: url("../img/couple.jpg");
