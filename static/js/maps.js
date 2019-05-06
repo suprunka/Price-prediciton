@@ -109,6 +109,8 @@ function addDraggableMarker(map, behavior, lat, lng){
 var platform = new H.service.Platform({
     'app_id': 'PWafOeMEykYIIGcoYB5V',
   'app_code': 'XRoNL4BRhvz80DDJynyhwg',
+      useHTTPS: true
+
 });
 var pixelRatio = window.devicePixelRatio || 1;
 var defaultLayers = platform.createDefaultLayers({
