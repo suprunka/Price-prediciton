@@ -77,7 +77,7 @@ def change_password():
 @app.route('/check_cred', methods=['GET', 'POST'])
 def check_credentials():
     form_value = request.form
-    username = form_value["username"]
+    username = form_value["email"]
     password = form_value["password"]
     result = account.log_in(username, password)
     if(result == True):
