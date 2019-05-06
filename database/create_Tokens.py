@@ -69,7 +69,7 @@ def give_token(email):
 
 def register(email, password, token):
     the_result = True
-    the_token = connect_to_tokens().find_one({'token': token})
+    the_token = connect_to_tokens().find_one({'token': int(token)})
     if the_token is not None:
         result = connect_to_users().insert({'email': email,
                                             'token': the_token,
