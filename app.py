@@ -14,7 +14,7 @@ from bokeh.embed import components
 from bson.json_util import dumps
 import sys
 sys.path.insert(0, 'P:/Python/project/analysis')
-import averaged_models
+from analysis import averaged_models
 
 
 app = Flask(__name__)
