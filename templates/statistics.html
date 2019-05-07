@@ -1,45 +1,27 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Housing Statistics</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
+<style>
+    .cont{max-width: 100vw;}
+</style>
+  {% extends "layout.html" %}
+  <section>
+      {% block content %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <link href="http://cdn.pydata.org/bokeh/release/bokeh-1.1.0.min.css" rel="stylesheet">
     <link href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-1.1.0.min.css" rel="stylesheet">
-  </head>
-  <body>
-    <select id="chart" onchange="show(this)">
-      <option value="p1">Grades and average price distribution</option>
-      <option value="p2">Houses condition chart</option>
-      <option value="p3">Chart 3</option>
-      <option value="p4">Chart 4</option>
-      <option value="p5">Chart 5</option>
-      <option value="p6">Chart 6</option>
-      <option value="p7">Chart 7</option>
-    </select>
-<script>
-    function show(chart) {
-      var choice = $("chart").val();
-      $.ajax({
-        type: 'POST',
-        url: "/stats",
-        data: {which: choice},
-        dataType: "text",
-        success: function (data) {
-        }
-      });
-    }
-</script>
+
+             <div class="cont">
+                  {{ the_div|safe }}
 
 
+     </div>
 
-
-
-    }
-
-    {{ the_div|safe }}
     <script src="http://cdn.pydata.org/bokeh/release/bokeh-1.1.0.min.js"></script>
     <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-1.1.0.min.js"></script>
-    {{ the_script|safe }}
-  </body>
+      {{ the_script|safe }}
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  {% endblock %}
+  </section>
+
 </html>

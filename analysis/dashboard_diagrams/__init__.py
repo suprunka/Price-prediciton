@@ -1,23 +1,22 @@
 import numpy as np
 from bokeh.io import output_notebook, output_file, show
-from bokeh.plotting import figure, show, gmap
+from bokeh.plotting import figure, show, gmap, Figure
 from bokeh.layouts import column, layout
-from bokeh.models.glyphs import Quad
-from bokeh.models import ColumnDataSource, GMapOptions
-from bokeh.models import CustomJS
+from bokeh.models.glyphs import Quad, Line
+from bokeh.models import ColumnDataSource, GMapOptions, Legend, DataTable, TableColumn,BasicTickFormatter,\
+    HoverTool
+from bokeh.models import CustomJS, CustomJSFilter, CDSView
+from bokeh.models.widgets import RangeSlider, Panel, Tabs, Slider
 import pandas as pd
 from math import pi
 from bokeh.transform import cumsum
-from database.dbConnection import *
-from bokeh.models import HoverTool, BasicTickFormatter
-from bokeh.models.widgets import Tabs
+from dbConnection import *
 from bokeh.io import curdoc
 from bokeh.palettes import Category20c
 from bokeh.tile_providers import CARTODBPOSITRON
 import math
 from bokeh.embed import components
 from ast import literal_eval
-
 
 
 def merc(lat, lon):
@@ -51,25 +50,34 @@ def create_price_grade_chart():
     groupByGrade['angle'] = groupByGrade['price'] / groupByGrade['price'].sum() * 2 * pi
     groupByGrade['color'] = Category20c[len(groupByGrade.index)]
     groupByGrade['index'] = groupByGrade.index
-    p1 = figure(plot_height=400, title="House average price and categories distribution",
-                toolbar_location=None, tools='hover')
+    p1 = figure( title="Average price of houses depending on grade",
+                toolbar_location=None, tools='hover', sizing_mode="scale_width")
+    p1.ygrid.grid_line_color = None
+    p1.xaxis.visible = False
+    p1.yaxis.visible = False
+    p1.toolbar.logo=None
+    p1.toolbar_location= None
     p1.wedge(x=0, y=1, radius=0.4, start_angle=cumsum('angle', include_zero=True),
              end_angle=cumsum('angle'), line_color="black", fill_color='color',
              legend='grade', source=groupByGrade)
     hover = p1.select(dict(type=HoverTool))
-    hover.tooltips = [('Average price', '@price{int}'), ('Grade', '@grade')]
-    return p1
+    hover.tooltips = [('Average price', '@price{0,0}$'), ('Grade', '@grade')]
+    tab1 = Panel(child=p1, title='Grade')
+    return tab1
 
-    # second
-    # housing['coordinates_x'] = ""
-    # housing['coordinates_y'] = ""
-    # for i in range(len(housing)):
-    #         housing['coordinates_x'].loc[i] = merc(housing['lat'].loc[i], housing['long'].loc[i])[0]
-    #         housing['coordinates_y'].loc[i] = merc(housing['lat'].loc[i], housing['long'].loc[i])[1]
-    # p2 = figure(x_axis_type="mercator", y_axis_type="mercator")
-    # p2.add_tile(CARTODBPOSITRON)
-    # p2.circle(x=housing['coordinates_x'], y=housing['coordinates_y'],  line_color="#FF0000",
-    #          fill_color="#FF0000", fill_alpha=0.05)
+
+# def create_location_chart():
+#     housing['coordinates_x'] = ""
+#     housing['coordinates_y'] = ""
+#     for i in range(len(housing)):
+#         housing['coordinates_x'].iloc[i] = merc(housing['lat'].iloc[i], housing['long'].iloc[i])[0]
+#         housing['coordinates_y'].iloc[i] = merc(housing['lat'].iloc[i], housing['long'].iloc[i])[1]
+#     p2 = figure(x_axis_type="mercator", y_axis_type="mercator")
+#     p2.add_tile(CARTODBPOSITRON)
+#     p2.circle(x=housing['coordinates_x'], y=housing['coordinates_y'],  line_color="#FF0000",
+#              fill_color="#FF0000", fill_alpha=0.05)
+#     tab2 = Panel(child=p2, title='Square meters')
+#     return tab2
 
 
 def create_condition_chart():
@@ -78,107 +86,132 @@ def create_condition_chart():
     t['index'] = t.index
     t['index'] = t['index'].astype(str)
     t['condition'] = t['condition'].astype(str)
-    p3 = figure(x_range=t['index'], plot_height=400, title='Number of houses of various conditions')
-    p3.vbar(x=t['index'], top=t['condition'], width=0.9)
-    p3.add_tools(HoverTool(tooltips=[("Condition", "@x"), ('Number of houses', '@y{int}')]))
+    data_dict = {'x': t['index'], 'y': t['condition']}
+    source = ColumnDataSource(data=data_dict)
+    p3 = figure(plot_height=300, sizing_mode="scale_width", x_range=data_dict['x'],  title='Number of houses in various conditions',
+                tools ="wheel_zoom,reset")
+    p3.vbar(x='x', top='y', source=source, width=0.7)
+    p3.add_tools(HoverTool(tooltips=[('Value', '@y{int}')]))
+    p3.xaxis.axis_label = "Conditions"
+    p3.yaxis.axis_label = "Number of houses"
+    p3.toolbar.autohide = True
     p3.xgrid.grid_line_color = None
     p3.y_range.start = 0
-    return p3
-
-def create_sqare_meters_chart():
-    groupByFloors = housing[['sqm_living', 'sqm_above', 'sqm_basement', 'sqm_lot', 'floors']].groupby(['floors']).mean()
-    groupByFloors['index'] = groupByFloors.index
-    p4 = figure(plot_width=600, plot_height=600)
-    p4.line(list(groupByFloors['index']), list(groupByFloors['sqm_living']), line_width=2, color="#A6CEE3",
-            legend='Average square meters living')
-    p4.line(list(groupByFloors['index']), list(groupByFloors['sqm_above']), line_width=2, color="#B2DF8A",
-            legend='Average square meters above')
-    p4.line(list(groupByFloors['index']), list(groupByFloors['sqm_basement']), line_width=2, color="#33A02C",
-            legend='Average square meters basement')
-    p4.line(list(groupByFloors['index']), list(groupByFloors['sqm_lot']), line_width=2, color="#FB9A99",
-            legend='Average square meters lot')
-    p4.add_tools(HoverTool(tooltips=[("Number of floors", "@x"), ('Value', '@y{int}')]))
-    return p4
+    tab3 = Panel(child=p3, title="Conditions")
+    return tab3
 
 
-def create_zipcode_chart():
-    groupByZipcode = housing[['zipcode', 'price']].groupby(['zipcode']).mean().sort_values(by='price', ascending=False)[
+def create_square_meters_chart():
+    group_by_floors = housing[['sqm_living', 'sqm_above', 'sqm_basement', 'sqm_lot', 'floors']].groupby(['floors']).mean()
+    group_by_floors['index'] = group_by_floors.index
+    data_dict = {'x': group_by_floors['index'], 'living': group_by_floors['sqm_living'],
+                 'above': group_by_floors['sqm_above'],
+                 'basement': group_by_floors['sqm_basement'], 'lot': group_by_floors['sqm_lot']}
+    source = ColumnDataSource(data=data_dict)
+    p4 = figure(plot_height=500, plot_width=1200,  sizing_mode="scale_width",tools ="wheel_zoom,reset")
+    l1 = p4.line(source=source, x='x', y='lot', line_width=2, line_color="#FB9A99")
+    l2 = p4.line(source=source, x='x', y='basement', line_width=2, line_color="#33A02C")
+    l3 = p4.line(source=source, x='x', y='above', line_width=2, line_color="#B2DF8A")
+    l4 = p4.line(source=source, x='x', y='living', line_width=2, line_color="#A6CEE3")
+    hover1 = HoverTool(renderers=[l1], tooltips=[('Floor', '@x{0.0,0}'), ('Value', '@lot{0.0}')])
+    hover2 = HoverTool(renderers=[l2], tooltips=[('Floor', '@x{0.0,0}'), ('Value', '@basement{0.0}')])
+    hover3 = HoverTool(renderers=[l3], tooltips=[('Floor', '@x{0.0,0}'), ('Value', '@above{0.0}')])
+    hover4 = HoverTool(renderers=[l4], tooltips=[('Floor', '@x{0.0,0}'), ('Value', '@living{0.0}')])
+    p4.add_tools(hover1, hover2, hover3, hover4)
+    p4.toolbar.autohide = True
+    p4.xaxis.axis_label = "Number of floors"
+    p4.yaxis.axis_label = "Average square meters"
+    legend = Legend(items=[
+        ('Average square meters lot', [l1]),
+        ('Average square meters basement', [l2]),
+        ('Average square meters above', [l3]),
+        ('Average square meters living', [l4])], location='center')
+
+    legend.click_policy = 'hide'
+    p4.add_layout(legend, 'right')
+
+    layout_ = column(p4)
+    tab4 = Panel(child=layout_, title='Floors and square area')
+    return tab4
+
+
+def create_zip_code_chart():
+    group_by_zipcode = housing[['zipcode', 'price']].groupby(['zipcode']).mean().sort_values(by='price', ascending=False)[
                      0:10]
-    groupByZipcode['zipcode'] = groupByZipcode.index
-    groupByZipcode['price'] = groupByZipcode['price'].astype(str)
-    groupByZipcode['zipcode'] = groupByZipcode['zipcode'].astype(str)
-    p5 = figure(x_range=groupByZipcode['zipcode'], plot_height=400, title='Top 10 most richest average neighbourhoods')
-    p5.vbar(x=groupByZipcode['zipcode'], top=groupByZipcode['price'], width=0.9)
-    p5.add_tools(HoverTool(tooltips=[("Zipcode", "@x"), ('Average price', '@y{int}')]))
+    group_by_zipcode['zipcode'] = group_by_zipcode.index
+    group_by_zipcode['price'] = group_by_zipcode['price'].astype(str)
+    group_by_zipcode['zipcode'] = group_by_zipcode['zipcode'].astype(str)
+    data_dict = {'x': group_by_zipcode['zipcode'], 'y': group_by_zipcode['price']}
+    p5 = figure(plot_height=300, sizing_mode="scale_width",
+                x_range=data_dict['x'],
+                title='Top 10 most richest average neighbourhoods')
+    p5.vbar(source= data_dict, x='x', top='y', width=0.7)
+    p5.left[0].formatter.use_scientific= False
+    p5.add_tools(HoverTool(tooltips=[("Zipcode", "@x"), ('Average price', '@y{0.0}')]))
     p5.xgrid.grid_line_color = None
     p5.y_range.start = 0
-    return p5
+    tab5 = Panel(child=p5, title='Most expensive neighbourhoods')
+    return tab5
 
 def create_renovated_chart():
-    groupByRenovated = housing[['yr_renovated', 'price']].groupby(['yr_renovated']).count()
-    groupByRenovated['index'] = groupByRenovated.index
-    numberOfNotRenovated = groupByRenovated.where(groupByRenovated['index'] == 0)['price'].sum().sum()
-    numberOfRenovated = groupByRenovated.where(groupByRenovated['index'] > 0)['price'].sum().sum()
-    # groupByGrade.append(groupByGrade.where('index'> 0)['price'.count(), 2)
-    dataframe = pd.DataFrame([['renovated', numberOfRenovated], ['not-renovated', numberOfNotRenovated]],
+    group_by_renovated = housing[['yr_renovated', 'price']].groupby(['yr_renovated']).count()
+    group_by_renovated['index'] = group_by_renovated.index
+    number_of_not_renovated = group_by_renovated.where(group_by_renovated['index'] == 0)['price'].sum().sum()
+    number_of_renovated = group_by_renovated.where(group_by_renovated['index'] > 0)['price'].sum().sum()
+    dataframe = pd.DataFrame([['Renovated', number_of_renovated], ['Not renovated', number_of_not_renovated]],
                              columns=['type', 'number'])
-    legend_title = "Number of renovated and not renovated houses"
-    w = dataframe['number'].sum()
     dataframe['angle'] = dataframe['number'] / dataframe['number'].sum() * 2 * pi
 
     dataframe['color'] = ['green', 'orange']
-    p6 = figure(plot_height=400, title="Number of renovated and not renovated houses", toolbar_location=None,
+    p6 = figure(plot_height=300, title="Number of renovated and not renovated houses", toolbar_location=None,
                 tools='hover')
+    p6.xgrid.grid_line_color = None
+    p6.ygrid.grid_line_color = None
+    p6.xaxis.visible = False
+    p6.yaxis.visible = False
     p6.wedge(x=0, y=1, radius=0.4, start_angle=cumsum('angle', include_zero=True),
              end_angle=cumsum('angle'), line_color="black", fill_color='color',
              legend='type', source=dataframe)
+    p6.sizing_mode = 'scale_width'
     hover = p6.select(dict(type=HoverTool))
-    hover.tooltips = [('Type', '@type'), ('Number of houses', '@number{int}')]
-    return p6
+    hover.tooltips = [('Number of houses', '@number{int}')]
+    tab6 = Panel(child=p6, title='Renovation')
+    return tab6
 
 
 def create_date_price_count_chart():
     # seventh
     groupByDate = housing[['date', 'price']].groupby(['date']).count()
     groupByDate['index'] = groupByDate.index
-    p7 = figure(plot_width=600, plot_height=600, x_axis_type='datetime')
+    p7 = figure(plot_height=300, x_axis_type='datetime')
     p7.line(groupByDate['index'], groupByDate['price'], line_width=2, color="#A6CEE3",
             legend='Number of sold houses')
-    p7.add_tools(HoverTool(tooltips=[("Date", "@x{DateTime}"), ('Sold houses', '@y{int}')]))
-    return p7
+    p7.add_tools(HoverTool(tooltips=[("Date", "@x{%F}"), ('Sold houses', '@y{int}')],
+                           formatters={'x': 'datetime'}))
+    p7.sizing_mode = 'scale_width'
 
+    tab7 = Panel(child=p7, title='Sold houses')
+    return tab7
 
 def create_date_price_sum_chart():
     groupByPrice = housing[['date', 'price']].groupby(['date']).sum()
     groupByPrice['index'] = groupByPrice.index
-    p8 = figure(plot_width=600, plot_height=600, x_axis_type='datetime')
+    p8 = figure(plot_height=300,  x_axis_type='datetime')
     p8.yaxis.formatter = BasicTickFormatter(use_scientific=False)
 
     p8.line(groupByPrice['index'], groupByPrice['price'], line_width=2, color="#33A02C",
             legend='Earned money')
-    p8.add_tools(HoverTool(tooltips=[("Date", "@x{DateTime}"), ('Sum from sold houses', '@y{int}')]))
-    source = ColumnDataSource(data=dict(x=groupByPrice['date'], y=groupByPrice['price']))
-    return p8
+    p8.add_tools(HoverTool(tooltips=[("Date", "@x{%F}"), ('Income', '@y{0.0,0}$')],
+                           formatters={'x': 'datetime'}))
+    p8.sizing_mode = 'scale_width'
+    # source = ColumnDataSource(data=dict(x=groupByPrice['date'], y=groupByPrice['price']))
+    tab8 = Panel(child=p8, title='Houses income')
+    return tab8
 
 
-def make_diagrams(which):
-    plot = None
-    if which == "p1":
-        plot = create_condition_chart()
-    elif which == 'p2':
-        plot = create_date_price_count_chart()
-    elif which == 'p3':
-        plot = create_date_price_sum_chart()
-    elif which == 'p4':
-        plot = create_price_grade_chart()
-    elif which == 'p5':
-        plot = create_renovated_chart()
-    elif which == 'p6':
-        plot = create_sqare_meters_chart()
-    elif which == 'p7':
-        plot = create_zipcode_chart()
-
-    script, div = components(layout([plot]))
+def make_diagrams():
+    tabs = Tabs(tabs=[create_price_grade_chart()],sizing_mode="scale_width")
+    script, div = components(tabs)
     return script, div
 
 

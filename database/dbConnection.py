@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from pandas import DataFrame
 import pymongo
-from .house import *
+from database.house import *
 
 def connect_to_database():
     connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
