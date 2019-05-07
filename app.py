@@ -64,10 +64,6 @@ def agent_view():
     return render_template('agent_view.html')
 
 
-@app.route('/agent_view')
-def agent_view():
-    return render_template('agent_view.html')
-
 
 @app.route('/register_agent')
 def register_agent():
