@@ -10,7 +10,7 @@ from bokeh.models.widgets import RangeSlider, Panel, Tabs, Slider
 import pandas as pd
 from math import pi
 from bokeh.transform import cumsum
-from dbConnection import *
+from database.dbConnection import *
 from bokeh.io import curdoc
 from bokeh.palettes import Category20c
 from bokeh.tile_providers import CARTODBPOSITRON
