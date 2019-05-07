@@ -13,6 +13,7 @@ from analysis.dashboard_diagrams import *
 from bokeh.embed import components
 from bson.json_util import dumps
 from analysis import averaged_models
+from flask_login import LoginManager
 
 with open('modelfin.pkl', 'rb') as f:
     model = pickle.load(f)
