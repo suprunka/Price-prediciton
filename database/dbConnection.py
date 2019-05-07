@@ -30,10 +30,11 @@ def delete_specific(id):
     result = connect_to_database().delete_one({'id': '"%s"'%id})
 
 
-def add_house_test():
-    connect_to_database().insert_one(set_properties(create_house(), {'price': 53200, 'lat': 123}).__dict__)
-
 def add_house(house):
+    house.sqft_above= float(house.sqft_above )*3.2808399
+    house.sqft_basement =float(house.sqft_basement )*3.2808399
+    house.sqft_lot =float(house.sqft_lot) *3.2808399
+    house.sqft_living= float(house.sqft_living) *3.2808399
     connect_to_database().insert_one(house.__dict__)
 
 
