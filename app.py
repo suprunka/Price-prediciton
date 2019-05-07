@@ -149,6 +149,7 @@ def statistics():
     return json_projects
 
 @app.route('/stats', methods=['GET', 'POST'])
+@login_required
 def stats():
     script, div = make_diagrams()
     return render_template("statistics.html", the_div=div, the_script=script)
