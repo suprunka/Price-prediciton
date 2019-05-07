@@ -18,7 +18,7 @@ from sklearn.base import BaseEstimator, TransformerMixin, RegressorMixin, clone
 from sklearn.model_selection import KFold, cross_val_score
 import xgboost as xgb
 import lightgbm as lgb
-import datetime as datetime
+import datetime
 from database.dbConnection import *
 from analysis.averaged_models import StackingAveragedModels
 import math
@@ -152,7 +152,7 @@ def add_additional_attributes(data):
 
     data = data.drop('zipcode', axis=1)
     train_set = data.copy()
-    train_set['age'] = datetime.date.today().year - train_set['yr_built']
+    train_set['age'] = datetime.datetime.date.today().year - train_set['yr_built']
     bins = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200]
     labels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     train_set['binned_age'] = pd.cut(train_set['age'], bins=bins, labels=labels)
