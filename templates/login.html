@@ -8,29 +8,10 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
-<body>
-<nav class="navbar navbar-expand-md navbar-dark bg-dark">
-    <a href="{{ url_for('main') }}" class="navbar-brand">
-        <img src="images/logo.svg" height="28" alt="CoolBrand">
-    </a>
-    <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
-        <span class="navbar-toggler-icon"></span>
-    </button>
 
-    <div class="collapse navbar-collapse" id="navbarCollapse">
-        <div class="navbar-nav">
-        <a class="nav-item nav-link" href="{{ url_for('main') }}">Home </a>
-        <a class="nav-item nav-link" href="{{ url_for('main') }}#about">About</a>
-        <a class="nav-item nav-link" href="{{ url_for('main') }}#predictions">Predictions</a>
-        <a class="nav-item nav-link" href="{{ url_for('main') }}#contact">Contact</a>
+{% extends "layout.html" %}
 
-        </div>
-        <div class="navbar-nav ml-auto">
-      <li class="nav-item nav-link"><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-user"></span> For agents</a></li>
-        </div>
-    </div>
-</nav>
-	<section id="content">
+      {% block content %}
 		<form id="form_content" action="/check_cred" method="post">
 			<h1>Login </h1>
 			{% if result== 'error'%}<p style="color: #f1fff6">Login or password is incorrect.</p>
@@ -47,7 +28,6 @@
 				<a href="{{ url_for('agent_view') }}">Without login</a>
 		</form><!-- form -->
 		
-	</section><!-- content -->
 
 <script type="text/javascript">
 
@@ -61,6 +41,5 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-
-</body>
+{% end block %}
 </html>

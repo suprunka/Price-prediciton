@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title><!DOCTYPE html>
-<html>
+
 <title>Houses prediction website</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,29 +11,10 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
-<body>
-<nav class="navbar navbar-expand-md navbar-dark bg-dark">
-    <a href="{{ url_for('main') }}" class="navbar-brand">
-        <img src="images/logo.svg" height="28" alt="CoolBrand">
-    </a>
-    <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+{% extends "layout.html" %}
 
-    <div class="collapse navbar-collapse" id="navbarCollapse">
-        <div class="navbar-nav">
-        <a class="nav-item nav-link" href="{{ url_for('main') }}">Home </a>
-        <a class="nav-item nav-link" href="{{ url_for('main') }}#about">About</a>
-        <a class="nav-item nav-link" href="{{ url_for('main') }}#predictions">Predictions</a>
-        <a class="nav-item nav-link" href="{{ url_for('main') }}#contact">Contact</a>
+      {% block content %}
 
-        </div>
-        <div class="navbar-nav ml-auto">
-      <li class="nav-item nav-link"><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-user"></span> For agents</a></li>
-        </div>
-    </div>
-</nav>
-	<section id="content">
 		<form id="form_content" action="/register_agent_check" method="post">
 			<h1 >Registration </h1>
 			{% if result== 'error'%}<p style="color: #f6f7ff">Error occured while creating the account. Try again</p>
@@ -55,7 +33,6 @@
 
 		</form><!-- form -->
 		
-	</section><!-- content -->
 
 <script type="text/javascript">
     function checkPasswordMatch() {
@@ -84,5 +61,5 @@ $(document).ready(function () {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
 
-</body>
+{%endblock%}
 </html>

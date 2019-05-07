@@ -28,10 +28,13 @@
         <a class="nav-item nav-link" href="{{ url_for('main') }}#contact">Contact</a>
 
         </div>
-        <div class="navbar-nav ml-auto">
-      <li class="nav-item nav-link"><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-user"></span> For agents</a></li>
-        </div>
-    </div>
+ <div class="navbar-nav ml-auto">
+            {% if current_user.is_anonymous %}
+                <li class="nav-item nav-link"><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-user"></span>For agents</a></li>
+            {% else %}
+                <li class="nav-item nav-link"><a href="{{ url_for('logout') }}"><span class="glyphicon glyphicon-user"></span> Log out</a></li>
+            {% endif %}
+        </div>    </div>
 </nav>
 <div class="content">
     {% block content %}

@@ -20,6 +20,25 @@ with open('modelfin.pkl', 'rb') as f:
 app = Flask(__name__)
 cors = CORS(app)
 app.static_folder = 'static'
+login = LoginManager(app)
+login.init_app(app)
+app.config.update(
+    SECRET_KEY='secret_key_iksde'
+)
+
+
+@login.user_loader
+def load_user(user_id):
+    return User(user_id)
+
+
+class User(UserMixin):
+    def __init__(self, id):
+        self.id = id
+
+
+def load_user(id):
+    return User(account.get_user(id))
 
 
 @app.route('/')
@@ -31,9 +50,17 @@ def main():
     return render_template('main.html')
 
 
-@app.route('/login')
-def login():
-    return render_template('login.html')
+
+@app.route('/logout', methods=["GET", "POST"])
+def logout():
+    logout_user()
+    return render_template('main.html')
+
+
+@app.route('/agent_view')
+@login_required
+def agent_view():
+    return render_template('agent_view.html')
 
 
 @app.route('/agent_view')
@@ -62,6 +89,7 @@ def add_house():
 
 
 @app.route('/change_password', methods=['GET', 'POST'])
+@login_required
 def change_password():
     form_value = request.form
     mail = form_value["email"]

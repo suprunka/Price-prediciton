@@ -47,29 +47,9 @@
 
     </style>
 </head>
-<body>
-<nav class="navbar navbar-expand-md navbar-dark bg-dark">
-    <a href="{{ url_for('main') }}" class="navbar-brand">
-        <img src="images/logo.svg" height="28" alt="CoolBrand">
-    </a>
-    <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+{% extends "layout.html" %}
 
-    <div class="collapse navbar-collapse" id="navbarCollapse">
-        <div class="navbar-nav">
-        <a class="nav-item nav-link" href="{{ url_for('main') }}">Home </a>
-        <a class="nav-item nav-link" href="{{ url_for('main') }}#about">About</a>
-        <a class="nav-item nav-link" href="{{ url_for('main') }}#predictions">Predictions</a>
-        <a class="nav-item nav-link" href="{{ url_for('main') }}#contact">Contact</a>
-
-        </div>
-        <div class="navbar-nav ml-auto">
-      <li class="nav-item nav-link"><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-user"></span> For agents</a></li>
-        </div>
-    </div>
-</nav>
-
+      {% block content %}
 <div class="cont" id="addHouse">
 
 <form name="myForm" method="post"  action="/add_house" role="form">
@@ -666,4 +646,5 @@
 <script  src="{{ url_for('static', filename='maps.js')}}"></script>
 
 
-</body></html>
+      {% endblock %}
+</html>
