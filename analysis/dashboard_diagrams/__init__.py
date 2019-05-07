@@ -42,7 +42,7 @@ housing['sqm_above'] = round(housing['sqft_above'] / valueOfSqM)
 housing['sqm_basement'] = round(housing['sqft_basement'] / valueOfSqM)
 housing = housing.drop(["sqft_living", "sqft_lot", "sqft_above", "sqft_basement"], axis=1)
 housing['date'] = housing['date'].apply(lambda x: x.replace(x, x[1:5] + "-" + x[5:7] + "-" + x[7:9]))
-housing['date'] = housing['date'].apply(lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date())
+housing['date'] = housing['date'].apply(lambda x: datetime.strptime(x, "%Y-%m-%d").date())
 
 
 def create_price_grade_chart():
