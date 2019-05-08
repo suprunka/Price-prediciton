@@ -13,7 +13,7 @@ from bokeh.transform import cumsum
 from database.dbConnection import *
 from bokeh.io import curdoc
 from bokeh.palettes import Category20c
-from bokeh.tile_providers import CARTODBPOSITRON
+#from bokeh.tile_providers import CARTODBPOSITRON
 import math
 from bokeh.embed import components
 from ast import literal_eval
