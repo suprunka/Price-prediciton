@@ -644,7 +644,7 @@ House market is very vast and difficult to understand.
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-<script  src="{{ url_for('static', filename='js/maps.js')}}"></script>
+<!--<script  src="{{ url_for('static', filename='js/maps.js')}}"></script>-->
 
 <script>
 
@@ -652,7 +652,6 @@ House market is very vast and difficult to understand.
   var zipcodes = [98039,98004,	98040,	98112, 98102,98006,98109,98105,98119,98005,98075,98199, 98033,98053,98074,98077,98177,98116,98007,98122,
                 98052,98115,98027,98144,98008,98103,98029,98072,98117, 98136,98107,98065,98024,98034]
 
-  var years =
 function addInput(selectID, options) {
     select = document.getElementById(selectID);
     for (var i = 0; i < options.length; i++) {
@@ -665,6 +664,181 @@ function addInput(selectID, options) {
 addInput("zipcode", zipcodes)
 $('#predictedPrice').hide();
 
+
+
+
+
+
+
+function confirmAddress() {
+geocode(platform)
+}
+function set_coordinates(x, y ) {
+  $("#long").val(x);
+  $('#lat').val(y)
+}
+
+
+
+function geocode(platform) {
+    var address =  $("#address").val()
+  var geocoder = platform.getGeocodingService(),
+    geocodingParameters = {
+      searchText: address,
+      jsonattributes : 1
+    };
+
+  geocoder.geocode(
+    geocodingParameters,
+    onSuccess,
+    onError
+  );
+}
+function onSuccess(result) {
+    console.log(result);
+  var locations = result.response.view[0].result;
+
+  addLocationsToMap(locations);
+  // ... etc.
+}
+
+/**
+ * This function will be called if a communication error occurs during the JSON-P request
+ * @param  {Object} error  The error message received.
+ */
+function onError(error) {
+  alert('Ooops!');
+}
+
+
+function addDraggableMarker(map, behavior, lat, lng){
+
+  var marker = new H.map.Marker({lat:lat, lng:lng});
+  // Ensure that the marker can receive drag events
+  marker.draggable = true;
+  map.addObject(marker);
+
+  // disable the default draggability of the underlying map
+  // when starting to drag a marker object:
+  map.addEventListener('dragstart', function(ev) {
+    var target = ev.target;
+    if (target instanceof H.map.Marker) {
+      behavior.disable();
+    }
+  }, false);
+
+
+  // re-enable the default draggability of the underlying map
+  // when dragging has completed
+  map.addEventListener('dragend', function(ev) {
+    var target = ev.target;
+    if (target instanceof mapsjs.map.Marker) {
+        behavior.enable();
+        var coord = map.screenToGeo(ev.currentPointer.viewportX,
+            ev.currentPointer.viewportY);
+        set_coordinates(coord.lng, coord.lat);
+loadDoc(coord.lng, coord.lat);
+
+
+    }}, false);
+
+  // Listen to the drag event and move the position of the marker
+  // as necessary
+   map.addEventListener('drag', function(ev) {
+    var target = ev.target,
+        pointer = ev.currentPointer;
+    if (target instanceof mapsjs.map.Marker) {
+      target.setPosition(map.screenToGeo(pointer.viewportX, pointer.viewportY));
+
+    }
+  }, false);
+}
+
+
+
+/**
+ * Boilerplate map initialization code starts below:
+ */
+
+//Step 1: initialize communication with the platform
+var platform = new H.service.Platform({
+    'app_id': 'PWafOeMEykYIIGcoYB5V',
+  'app_code': 'XRoNL4BRhvz80DDJynyhwg',
+      'useHTTPS': true
+
+});
+var pixelRatio = window.devicePixelRatio || 1;
+var defaultLayers = platform.createDefaultLayers({
+  tileSize: pixelRatio === 1 ? 256 : 512,
+  ppi: pixelRatio === 1 ? undefined : 320
+});
+
+//Step 2: initialize a map - this map is centered over Boston
+var map = new H.Map(document.getElementById('map'),
+  defaultLayers.normal.map,{
+  center: {lat:47.5, lng:-122.2},
+  zoom: 12,
+  pixelRatio: pixelRatio
+});
+
+//Step 3: make the map interactive
+// MapEvents enables the event system
+// Behavior implements default interactions for pan/zoom (also on mobile touch environments)
+var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
+
+// Step 4: Create the default UI:
+var ui = H.ui.UI.createDefault(map, defaultLayers, 'en-US');
+
+// Add the click event listener.
+function addLocationsToMap(locations){
+  var group = new  H.map.Group(),
+    i;
+    var x= locations.length-1
+  // Add a marker for each location found
+
+      set_coordinates(locations[x].location.displayPosition.longitude, locations[x].location.displayPosition.latitude);
+
+      var marker3 = addDraggableMarker(map, behavior,locations[x].location.displayPosition.latitude, locations[x].location.displayPosition.longitude);
+
+      map.setCenter({lat:locations[x].location.displayPosition.latitude, lng:locations[x].location.displayPosition.longitude});
+    group.addObject(marker3);
+
+
+  group.addEventListener('tap', function (evt) {
+    map.setCenter(evt.target.getPosition());
+    openBubble(
+       evt.target.getPosition(), evt.target.label);
+  }, false);
+
+  // Add the locations group to the map
+  map.addObject(group);
+  map.setCenter(group.getBounds().getCenter());
+}
+
+
+function addLocationsToAddress(locations){
+ $("address").val(locations);
+
+}
+function loadDoc(x,y) {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+          var data = JSON.parse(this.response)
+      console.log(this.responseText);
+      console.log(data);
+
+        $("#address").val(data.Response.View[0].Result[0].Location.Address.Label)
+      console.log(this.responseText);
+    }
+  };
+  xhttp.open("GET", "https://reverse.geocoder.api.here.com/6.2/reversegeocode.json?prox="+y+","+x+"&mode=retrieveAddresses&maxresults=1&gen=9&app_id=PWafOeMEykYIIGcoYB5V&app_code=XRoNL4BRhvz80DDJynyhwg", true);
+  xhttp.send();}
+
+
+// Now use the map as required...
+addDraggableMarker(map, behavior, 47.5, -122.2);
+geocode(platform);
 </script>
 <script  src="{{ url_for('static', filename='js/sliders.js')}}"></script>
 {% if data %}
