@@ -59,8 +59,13 @@ function onError(error) {
 }
 
 function addDraggableMarker(map, behavior, lat, lng){
+ let svgMarkup = '<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg">' +
+  '<rect stroke="black" fill="white" x="1" y="1" width="22" height="22" />' +
+  '<text x="12" y="18" font-size="12pt" font-family="Arial" font-weight="bold" ' +
+  'text-anchor="middle" fill="orange">C</text></svg>';
 
-  var marker = new H.map.Marker({lat:lat, lng:lng});
+  let svgIcon = new H.map.Icon(svgMarkup);
+  var marker = new H.map.Marker({lat:lat, lng:lng}, {icon:svgIcon} );
   // Ensure that the marker can receive drag events
   marker.draggable = true;
   map.addObject(marker);
