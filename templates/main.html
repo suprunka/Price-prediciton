@@ -592,7 +592,7 @@ House market is very vast and difficult to understand.
     </div>
 
     <div class="col-md-6">
-        <div id="map" style=" width:90%; height:50vh; background: grey" />
+        <div id="map" style=" width:300px; height:300px; background: grey" />
 
     </div>
 
@@ -644,24 +644,25 @@ House market is very vast and difficult to understand.
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-
 <script  src="{{ url_for('static', filename='js/maps.js')}}"></script>
+
 <script>
 
 
   var zipcodes = [98039,98004,	98040,	98112, 98102,98006,98109,98105,98119,98005,98075,98199, 98033,98053,98074,98077,98177,98116,98007,98122,
                 98052,98115,98027,98144,98008,98103,98029,98072,98117, 98136,98107,98065,98024,98034]
 
-function addInput(selectID) {
+  var years =
+function addInput(selectID, options) {
     select = document.getElementById(selectID);
-    for (var i = 0; i < zipcodes.length; i++) {
+    for (var i = 0; i < options.length; i++) {
         var opt = document.createElement('option');
-        opt.value = zipcodes[i];
-        opt.innerHTML = zipcodes[i];
+        opt.value = options[i];
+        opt.innerHTML = options[i];
         select.add(opt);
     }
 }
-addInput("zipcode")
+addInput("zipcode", zipcodes)
 $('#predictedPrice').hide();
 
 </script>
