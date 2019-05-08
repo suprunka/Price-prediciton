@@ -61,7 +61,7 @@ function onError(error) {
 
 // Define a callback function to process the response:
 function onSuccessRev(result) {
-    var location = result.Response.View[0].Result[0];
+  var location = result.response.view[0].result[0];
     $('#address').value = location.Name
 }
 function addDraggableMarker(map, behavior, lat, lng){
@@ -69,7 +69,7 @@ function addDraggableMarker(map, behavior, lat, lng){
   '<rect stroke="black" fill="white" x="1" y="1" width="22" height="22" />' +
   '<text x="12" y="18" font-size="12pt" font-family="Arial" font-weight="bold" ' +
   'text-anchor="middle" fill="orange">C</text></svg>';
-
+  //comment
   let svgIcon = new H.map.Icon(svgMarkup);
   var marker = new H.map.Marker({lat:lat, lng:lng}, {icon:svgIcon} );
   // Ensure that the marker can receive drag events
