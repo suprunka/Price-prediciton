@@ -58,6 +58,12 @@ function onError(error) {
   alert('Ooops!');
 }
 
+
+// Define a callback function to process the response:
+function onSuccessRev(result) {
+    var location = result.Response.View[0].Result[0];
+    $('#address').value = location.Name
+}
 function addDraggableMarker(map, behavior, lat, lng){
  let svgMarkup = '<svg width="88" height="84" xmlns="http://www.w3.org/2000/svg">' +
   '<rect stroke="black" fill="white" x="1" y="1" width="22" height="22" />' +
@@ -89,6 +95,17 @@ function addDraggableMarker(map, behavior, lat, lng){
 	  var coord = map.screenToGeo(ev.currentPointer.viewportX,
             ev.currentPointer.viewportY);
         set_coordinates(coord.lng, coord.lat)
+        var reverseGeocodingParameters = {
+        prox: coord.lng+', '+coord.lat,
+        mode: 'retrieveAddresses',
+        maxresults: 1
+  };
+
+         var geocoder = platform.getGeocodingService();
+      geocoder.reverseGeocode(
+          reverseGeocodingParameters,
+          onSuccessRev,
+          function(e) { alert(e); });
 
     }
 
@@ -102,6 +119,7 @@ function addDraggableMarker(map, behavior, lat, lng){
         pointer = ev.currentPointer;
     if (target instanceof mapsjs.map.Marker) {
       target.setPosition(map.screenToGeo(pointer.viewportX, pointer.viewportY));
+
     }
   }, false);
 }
@@ -149,7 +167,8 @@ function addLocationsToMap(locations){
       set_coordinates(locations[x].location.displayPosition.longitude, locations[x].location.displayPosition.latitude);
 
       var marker3 = addDraggableMarker(map, behavior,locations[x].location.displayPosition.latitude, locations[x].location.displayPosition.longitude);
-    map.setCenter({lat:locations[x].location.displayPosition.latitude, lng:locations[x].location.displayPosition.longitude});
+
+      map.setCenter({lat:locations[x].location.displayPosition.latitude, lng:locations[x].location.displayPosition.longitude});
     group.addObject(marker3);
 
 
@@ -170,8 +189,10 @@ function addLocationsToAddress(locations){
 
 }
 
+
 // Now use the map as required...
 addDraggableMarker(map, behavior, 47.5, -122.2);
 geocode(platform);
-addInput("zipcode")
+addInput("zipcode");
+
 
