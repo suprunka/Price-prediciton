@@ -1,6 +1,9 @@
 from .dbConnection import *
 import hashlib, binascii, os, smtplib
+from bson.objectid import ObjectId
+from threading import Lock
 
+lock = Lock()
 
 def connect_to_tokens():
     connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
@@ -55,23 +58,29 @@ def get_token():
     return number
 
 
-def give_token(email):
-    number = get_token()
-    result = connect_to_users().find_one({'email': email})
-    if number is not None and result is not None:
-        the_token = connect_to_tokens().find_one({'token': number})
-        msg = "This is your token. It is important! " \
-              "Remember to save it. Use it to create the account: ", the_token
-        send_mail(email, msg)
-        connect_to_tokens().update(the_token, {"$set": {'isUsed': True}})
-    return number
+def give_token(email, number):
+    result_ = False
+    user = connect_to_users().find_one({'email':email})
+    if number is not None and user is None:
+        lock.acquire()
+        the_token = connect_to_tokens().find_one({'token': int(number)})
+        if the_token['isUsed'] is True:
+            return False
+        msg = "This is your token. It is important! Remember to save it. Use it to create the account: " + str(number)
+        changed = connect_to_tokens().update_one(the_token, {"$set": {'isUsed': True}})
+        lock.release()
+        if changed.modified_count > 0:
+            result_ = True
+            send_mail(email, msg)
+    return result_
 
 
 def register(email, password, token):
     the_result = True
     the_token = connect_to_tokens().find_one({'token': int(token)})
     if the_token is not None:
-        result = connect_to_users().insert_one({'email': email, 'token': the_token, 'password': hash_password(password)})
+        result = connect_to_users().insert_one({'email': email, 'token': the_token, 'password': hash_password(password),
+                                                'is_admin': False})
         if result is None:
             the_result = False
         else:
@@ -80,10 +89,16 @@ def register(email, password, token):
     return the_result
 
 
-def get_user(email):
-    token = connect_to_users().find_one({'email': email})['token']
-    _id = token['_id']
-    return _id
+
+
+def get_user_by_mail(email):
+    result = connect_to_users().find_one({'email': email})
+    return result
+
+
+def get_user_by_id(_id):
+    found = connect_to_users().find_one({'token._id': ObjectId(_id)})
+    return found
 
 
 def log_in(email, password):

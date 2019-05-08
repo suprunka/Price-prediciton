@@ -9,7 +9,7 @@ from database import create_Tokens as account
 import prepare_for_prediction as pred
 import json
 from bson import json_util
-from analysis.dashboard_diagrams import *
+# from analysis.dashboard_diagrams import *
 from bokeh.embed import components
 from bson.json_util import dumps
 from analysis import averaged_models
@@ -38,21 +38,23 @@ class User(UserMixin):
     def __init__(self, id):
         self.id = id
 
+    @property
+    def is_admin(self):
+        user = self.get_user()
+        w = user['is_admin']
+        return w
+
+    def get_user(self):
+        return account.get_user_by_id(self.id)
 
 @login.user_loader
 def load_user(user_id):
     return User(user_id)
 
 
-
-def find_user(id):
-    return User(account.get_user(id))
-
-
 @app.route('/')
 def hello_world():
     return render_template('main.html')\
-
 
 
 @app.route('/main')
@@ -66,7 +68,7 @@ def login():
         email = request.form['email']
         password = request.form['password']
         if account.log_in(email, password) is True:
-            user = User(find_user(email))
+            user = User(account.get_user_by_mail(email)['token']['_id'])
             login_user(user)
             return render_template('agent_view.html')
         else:
@@ -143,6 +145,23 @@ def change_password():
 #         return render_template('login.html')
 
 
+@app.route('/send_token', methods=['GET', 'POST'])
+def send_token():
+    if request.method == 'POST':
+        form_value = request.form
+        mail = form_value["email"]
+        number = form_value["token"]
+        result = account.give_token(mail, number)
+        if result is True:
+            return render_template('send_token.html', token=account.get_token(),
+                                   message="You have successfully sent the token.")
+        else:
+            return render_template('send_token.html', token=account.get_token(),
+                                   message="The email is already registered.")
+    else:
+        return render_template('send_token.html', token=account.get_token())
+
+
 @app.route('/register_agent_check', methods=['GET', 'POST'])
 def register_agent_check():
     form_value = request.form
@@ -150,10 +169,10 @@ def register_agent_check():
     password = form_value["password"]
     password2 = form_value["passwordCon"]
     token = form_value["token"]
-    result =False
-    if(password == password2):
+    result = False
+    if password == password2:
         result = account.register(mail, password, token)
-    if(result):
+    if result:
         return render_template('agent_view.html')
     return render_template('register.html', result='error')
 
