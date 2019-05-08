@@ -44,6 +44,7 @@ def load_user(user_id):
     return User(user_id)
 
 
+
 def find_user(id):
     return User(account.get_user(id))
 
