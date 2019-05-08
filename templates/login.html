@@ -12,20 +12,19 @@
 {% extends "layout.html" %}
 
       {% block content %}
-		<form id="form_content" action="/check_cred" method="post">
+		<form id="form_content" action="/login" method="post">
 			<h1>Login </h1>
 			{% if result== 'error'%}<p style="color: #f1fff6">Login or password is incorrect.</p>
 			{% endif %}
-
-				<input type="text" placeholder="Mail" required name="email" id="mail" />
+            {% if result== 'log'%}<p style="color: #f1fff6">Log in first to access this page</p>
+			{% endif %}
+            <input type="text" placeholder="Mail" required name="email" id="mail" />
 			<p></p>
 				<input type="password" placeholder="Password" required  name="password" id="password" />
 			<p></p>
 				<input type="submit" class="btn btn-outline-info" value="Log in"/>
 				<p></p>
 				<a href="{{ url_for('register_agent') }}">Don't you have an account?</a>
-				<a href="{{ url_for('forgot_password') }}">Have you forgotten your password?</a>
-				<a href="{{ url_for('agent_view') }}">Without login</a>
 		</form><!-- form -->
 		
 

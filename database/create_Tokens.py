@@ -71,9 +71,7 @@ def register(email, password, token):
     the_result = True
     the_token = connect_to_tokens().find_one({'token': int(token)})
     if the_token is not None:
-        result = connect_to_users().insert({'email': email,
-                                            'token': the_token,
-                                            'password': hash_password(password)})
+        result = connect_to_users().insert_one({'email': email, 'token': the_token, 'password': hash_password(password)})
         if result is None:
             the_result = False
         else:
@@ -82,21 +80,29 @@ def register(email, password, token):
     return the_result
 
 
+def get_user(email):
+    token = connect_to_users().find_one({'email': email})['token']
+    _id = token['_id']
+    return _id
+
+
 def log_in(email, password):
     stored = connect_to_users().find_one({'email': email})['password']
     return check_password(password, stored)
 
 
 def change_password(email, token, new_password):
+    result_ = False
     connection = connect_to_users()
-    result = connection.find_one({'token': token, 'email': email})
+    result = connection.find_one({'token.token': int(token), 'email': email})
     if result is not None:
-        changed = connection.update_one({'token': token, 'email': email}, {'$set': {'password': hash_password(new_password)}})
+        changed = connection.update_one({'token.token': int(token), 'email': email}, {'$set': {'password': hash_password(new_password)}})
         if changed.modified_count == 1:
-            msg = 'Your password has been changed to', new_password
+            msg = 'Your password has been changed to ' + new_password
             send_mail(email, msg)
-            return True
-    return False
+            result_ = True
+
+    return result_
 
 def send_mail(to, message):
     server = smtplib.SMTP('smtp.gmail.com', 25)

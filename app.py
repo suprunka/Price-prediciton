@@ -5,7 +5,7 @@ from flask_cors import CORS
 from flask import Flask, render_template, redirect, url_for, request, jsonify
 from database import house as house_db
 from database import dbConnection as db
-from database import  create_Tokens as account
+from database import create_Tokens as account
 import prepare_for_prediction as pred
 import json
 from bson import json_util
@@ -13,6 +13,7 @@ from analysis.dashboard_diagrams import *
 from bokeh.embed import components
 from bson.json_util import dumps
 from analysis import averaged_models
+
 from flask_login import LoginManager, UserMixin, current_user, login_user, login_required, logout_user
 
 with open('modelfin.pkl', 'rb') as f:
@@ -28,9 +29,9 @@ app.config.update(
 )
 
 
-@login.user_loader
-def load_user(user_id):
-    return User(user_id)
+@login.unauthorized_handler
+def unauthorized():
+    return render_template('login.html', result='log')
 
 
 class User(UserMixin):
@@ -38,7 +39,12 @@ class User(UserMixin):
         self.id = id
 
 
-def load_user(id):
+@login.user_loader
+def load_user(user_id):
+    return User(user_id)
+
+
+def find_user(id):
     return User(account.get_user(id))
 
 
@@ -46,17 +52,30 @@ def load_user(id):
 def hello_world():
     return render_template('main.html')\
 
+
+
 @app.route('/main')
 def main():
     return render_template('main.html')
 
+
 @app.route('/login', methods=["GET", "POST"])
 def login():
-    return render_template('login.html')
-
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        if account.log_in(email, password) is True:
+            user = User(find_user(email))
+            login_user(user)
+            return render_template('agent_view.html')
+        else:
+            return render_template('login.html', result='error')
+    else:
+        return render_template('login.html')
 
 
 @app.route('/logout', methods=["GET", "POST"])
+@login_required
 def logout():
     logout_user()
     return render_template('main.html')
@@ -68,18 +87,19 @@ def agent_view():
     return render_template('agent_view.html')
 
 
-
 @app.route('/register_agent')
 def register_agent():
     return render_template('register_agent.html')
 
 
-@app.route('/forgot_password')
-def forgot_password():
-    return render_template('forgot_password.html')
+# @app.route('/forgot_password')
+# @login_required
+# def forgot_password():
+#     return render_template('forgot_password.html')
 
 
 @app.route('/add_house', methods=['GET', 'POST'])
+@login_required
 def add_house():
     form_value = request.form
     json_val = jsonify(form_value)
@@ -92,26 +112,34 @@ def add_house():
 @app.route('/change_password', methods=['GET', 'POST'])
 @login_required
 def change_password():
-    form_value = request.form
-    mail = form_value["email"]
-    password = form_value["password"]
-    password2 = form_value["passwordCon"]
-    token = form_value["token"]
-    if(password == password2):
-        if(account.change_password(email=mail, token=token, new_password= password)):
-            return render_template('login.html')
-    return render_template('forgot_password.html', result='error')
+    if request.method == 'POST':
+        form_value = request.form
+        mail = form_value["email"]
+        password = form_value["password"]
+        password2 = form_value["passwordCon"]
+        token = form_value["token"]
+        if password == password2:
+            if account.change_password(email=mail, token=token, new_password=password) is True:
+                return render_template('login.html')
+        else:
+            return render_template('forgot_password.html', result='error')
+    else:
+        return render_template('forgot_password.html')
 
 
-@app.route('/check_cred', methods=['GET', 'POST'])
-def check_credentials():
-    form_value = request.form
-    username = form_value["email"]
-    password = form_value["password"]
-    result = account.log_in(username, password)
-    if(result == True):
-        return render_template('agent_view.html')
-    return render_template('login.html', result='error')
+# @app.route('/check_cred', methods=['GET', 'POST'])
+# def check_credentials():
+#     if request.method == 'POST':
+#         email = request.form['email']
+#         password = request.form['password']
+#         if account.log_in(email, password) is True:
+#             user = User(load_user(email))
+#             login_user(user)
+#             return render_template('agent_view.html')
+#         else:
+#             return render_template('login.html', result='error')
+#     else:
+#         return render_template('login.html')
 
 
 @app.route('/register_agent_check', methods=['GET', 'POST'])
@@ -149,11 +177,13 @@ def statistics():
     json_projects = json.dumps(json_projects, default=json_util.default)
     return json_projects
 
+
 @app.route('/stats', methods=['GET', 'POST'])
 @login_required
 def stats():
     script, div = make_diagrams()
     return render_template("statistics.html", the_div=div, the_script=script)
+
 
 if __name__ == '__main__':
     app.run()

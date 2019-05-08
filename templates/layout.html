@@ -26,15 +26,26 @@
         <a class="nav-item nav-link" href="{{ url_for('main') }}#about">About</a>
         <a class="nav-item nav-link" href="{{ url_for('main') }}#predictions">Predictions</a>
         <a class="nav-item nav-link" href="{{ url_for('main') }}#contact">Contact</a>
+            {% if current_user.is_authenticated %}
+            <a class="nav-item nav-link" href="{{ url_for('stats') }}">Statistics</a>
+            <a class="nav-item nav-link" href="{{ url_for('agent_view') }}">Add house</a>
+            <a class="nav-item nav-link" href="{{ url_for('change_password') }}">Change password</a>
+            {% endif %}
+            {% if current_user.id == "5cbaf275bec7fb1bc0cdbac4" %}
+            <a class="nav-item nav-link">Gitara</a>
+            {% endif %}
 
         </div>
- <div class="navbar-nav ml-auto">
+
+        <div class="navbar-nav ml-auto">
             {% if current_user.is_anonymous %}
                 <li class="nav-item nav-link"><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-user"></span>For agents</a></li>
             {% else %}
                 <li class="nav-item nav-link"><a href="{{ url_for('logout') }}"><span class="glyphicon glyphicon-user"></span> Log out</a></li>
             {% endif %}
-        </div>    </div>
+
+        </div>
+    </div>
 </nav>
 <div class="content">
     {% block content %}
