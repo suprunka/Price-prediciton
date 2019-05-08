@@ -91,6 +91,7 @@ def register(email, password, token):
 
 
 
+
 def get_user_by_mail(email):
     result = connect_to_users().find_one({'email': email})
     return result
