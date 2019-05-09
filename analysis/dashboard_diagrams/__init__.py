@@ -1,44 +1,34 @@
 import numpy as np
-from bokeh.io import output_notebook, output_file, show
-from bokeh.plotting import figure, show, gmap, Figure
-from bokeh.layouts import column, layout
-from bokeh.models.glyphs import Quad, Line
-from bokeh.models import ColumnDataSource, GMapOptions, Legend, DataTable, TableColumn,BasicTickFormatter,\
-    HoverTool
-from bokeh.models import CustomJS, CustomJSFilter, CDSView
-from bokeh.models.widgets import RangeSlider, Panel, Tabs, Slider
+from bokeh.plotting import figure
+from bokeh.layouts import column
+from bokeh.models import ColumnDataSource, Legend, BasicTickFormatter,HoverTool
+from bokeh.models.widgets import Panel, Tabs
 import pandas as pd
 from math import pi
 from bokeh.transform import cumsum
-from database.dbConnection import *
-from bokeh.io import curdoc
+from database.dbConnection import get_data
 from bokeh.palettes import Category20c
-#from bokeh.tile_providers import CARTODBPOSITRON
+from bokeh.tile_providers import CARTODBPOSITRON
 import math
 from bokeh.embed import components
-from ast import literal_eval
 from datetime import datetime
-import threading
-from multiprocessing.pool import ThreadPool
 
 
-def thread_function():
-    return get_data();
+def merc_x(lon):
+    r_major = 6378137.000
+    x = r_major * math.radians(lon)
+    return x
 
-pool = ThreadPool(processes=1)
-res = pool.apply_async(thread_function)
-housing_n = res.get()
 
-def merc(lat, lon):
+def merc_y(lon, lat):
     r_major = 6378137.000
     x = r_major * math.radians(lon)
     scale = x / lon
-    y = 180.0 / math.pi * math.log(math.tan(math.pi / 4.0 +
-                                            lat * (math.pi / 180.0) / 2.0)) * scale
-    return x, y
+    y = 180.0 / math.pi * math.log(math.tan(math.pi / 4.0 + lat * (math.pi / 180.0) / 2.0)) * scale
+    return y
 
 
-
+housing_n = get_data()
 valueOfSqM = 10.76
 housing_n = housing_n.drop(["sqft_living15", "sqft_lot15", 'waterfront'], axis=1)
 housing_n['floors'] = housing_n['floors'].str[1:-1]
@@ -54,10 +44,8 @@ housing['date'] = housing['date'].apply(lambda x: x.replace(x, x[1:5] + "-" + x[
 housing['date'] = housing['date'].apply(lambda x: datetime.strptime(x, "%Y-%m-%d").date())
 
 
-
 def create_price_grade_chart():
     groupByGrade = housing[['price', 'grade']].groupby(['grade']).mean()
-    legend_title = "House grades"
     groupByGrade['angle'] = groupByGrade['price'] / groupByGrade['price'].sum() * 2 * pi
     groupByGrade['color'] = Category20c[len(groupByGrade.index)]
     groupByGrade['index'] = groupByGrade.index
@@ -77,18 +65,17 @@ def create_price_grade_chart():
     return tab1
 
 
-# def create_location_chart():
-#     housing['coordinates_x'] = ""
-#     housing['coordinates_y'] = ""
-#     for i in range(len(housing)):
-#         housing['coordinates_x'].iloc[i] = merc(housing['lat'].iloc[i], housing['long'].iloc[i])[0]
-#         housing['coordinates_y'].iloc[i] = merc(housing['lat'].iloc[i], housing['long'].iloc[i])[1]
-#     p2 = figure(x_axis_type="mercator", y_axis_type="mercator")
-#     p2.add_tile(CARTODBPOSITRON)
-#     p2.circle(x=housing['coordinates_x'], y=housing['coordinates_y'],  line_color="#FF0000",
-#              fill_color="#FF0000", fill_alpha=0.05)
-#     tab2 = Panel(child=p2, title='Square meters')
-#     return tab2
+def create_location_chart():
+    housing['coordinates_x'] = ""
+    housing['coordinates_y'] = ""
+    housing['coordinates_x'] = np.vectorize(merc_x)(housing['long'])
+    housing['coordinates_y'] = np.vectorize(merc_y)(housing['long'], housing['lat'])
+    p2 = figure(x_axis_type="mercator", y_axis_type="mercator")
+    p2.add_tile(CARTODBPOSITRON)
+    p2.circle(x=housing['coordinates_x'], y=housing['coordinates_y'],  line_color="#FF0000",
+             fill_color="#FF0000", fill_alpha=0.05)
+    tab2 = Panel(child=p2, title='Square meters')
+    return tab2
 
 
 def create_condition_chart():
@@ -221,8 +208,9 @@ def create_date_price_sum_chart():
 
 
 def make_diagrams():
-    tabs = Tabs(tabs=[create_price_grade_chart()],sizing_mode="scale_width")
+    tabs = Tabs(tabs=[create_location_chart()], sizing_mode="scale_width")
     script, div = components(tabs)
     return script, div
+
 
 

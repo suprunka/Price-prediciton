@@ -126,8 +126,11 @@ def send_mail(to, message):
     server = smtplib.SMTP('smtp.gmail.com', 25)
     server.starttls()
     server.login('predproject2004@gmail.com', '90809988Qwe')
+    subject = 'Housing Prediction'
     msg = "Dear " + to + ". " + message
-    server.sendmail('predproject2004@gmail.com', to, msg)
+    message = "Subject: {} \n\n {}".format(subject, msg)
+    server.sendmail('predproject2004@gmail.com', to, message)
+    server.quit()
 
 
 def generate_random_password():

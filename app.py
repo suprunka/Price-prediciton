@@ -9,7 +9,7 @@ from database import create_Tokens as account
 import prepare_for_prediction as pred
 import json
 from bson import json_util
-from analysis.dashboard_diagrams import *
+from analysis.dashboard_diagrams import make_diagrams
 from bokeh.embed import components
 from bson.json_util import dumps
 from analysis import averaged_models
@@ -70,7 +70,7 @@ def login():
         if account.log_in(email, password) is True:
             user = User(account.get_user_by_mail(email)['token']['_id'])
             login_user(user)
-            return render_template('agent_view.html')
+            return render_template('main.html')
         else:
             return render_template('login.html', result='Wrong password or email.')
     else:
@@ -126,6 +126,7 @@ def change_password():
             is_the_same = account.check_password(password, user['password'])
             if not is_the_same:
                 if account.change_password(email=mail, token=token, new_password=password) is True:
+                    logout_user()
                     return render_template('login.html')
                 else:
                     return render_template('forgot_password.html', result='The token is incorrect.')
@@ -145,6 +146,7 @@ def reset_password():
         mail = form_value["email"]
         token = form_value["token"]
         if account.reset_password(token=token, email=mail) is True:
+            logout_user()
             return render_template('login.html', result="Your password has been reset and sent on your e-mail. Use it to log in.")
         else:
             return render_template('reset_password.html', result='Token or e-mail are incorrect.')
@@ -193,16 +195,16 @@ def register_agent_ch7eck():
     return render_template('main.html',data= result)
 
 
-@app.route('/statistics', methods=['GET', 'POST'])
-def statistics():
-    FIELDS = {'price': True, 'bedrooms': True, 'bathrooms': True,
-              'sqft_living': True, 'sqft_lot': True, 'date': True}
-    projects = account.connect_to_houses().find(projection=FIELDS)
-    json_projects=[]
-    for project in projects:
-        json_projects.append(project)
-    json_projects = json.dumps(json_projects, default=json_util.default)
-    return json_projects
+# @app.route('/statistics', methods=['GET', 'POST'])
+# def statistics():
+#     FIELDS = {'price': True, 'bedrooms': True, 'bathrooms': True,
+#               'sqft_living': True, 'sqft_lot': True, 'date': True}
+#     projects = account.connect_to_houses().find(projection=FIELDS)
+#     json_projects=[]
+#     for project in projects:
+#         json_projects.append(project)
+#     json_projects = json.dumps(json_projects, default=json_util.default)
+#     return json_projects
 
 
 @app.route('/stats', methods=['GET', 'POST'])
