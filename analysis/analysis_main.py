@@ -175,7 +175,10 @@ def transform_data(data):
     data_deleted_columns = data_no_duplicates.drop(['bathrooms', 'yr_renovated','view', 'bedrooms', 'floors','id', 'price',
                                                     'condition'], axis=1)
     cols = [col for col in data_deleted_columns.columns if col not in ['price', 'id']]
-    data_scaled = MinMaxScaler().fit_transform(data_no_duplicates[cols])
+    scaler = MinMaxScaler()
+    data_scaled = scaler.fit_transform(data_no_duplicates[cols])
+    with open("scaler.pkl", "wb") as outfile:
+        pickle.dump(scaler, outfile)
     return data_scaled
 
 
@@ -191,10 +194,10 @@ def get_labels(data):
     return to_return
 
 
-housing_prepared = transform_data(housing)
 housing_labels = get_labels(housing)
-test_X= transform_data(strat_test_set)
+#test_X= transform_data(strat_test_set)
 test_y = get_labels(strat_test_set)
+housing_prepared = transform_data(housing)
 
 
 # #Select and train a model

@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import datetime
 from database import dbConnection as db
+import pickle
 
 
 def get_data_fromdb():
@@ -19,15 +20,14 @@ def prepare_data(sent_data):
 
     data = pd.DataFrame([sent_data])
     data_additional_attributes = add_additional_attributes(data)
-    data_filtered = get_rid_of_outliers(data_additional_attributes)[
-        ['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living']]
-    data_connected = pd.merge(data_filtered, data_additional_attributes, how='inner',
-                              on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living'])
-    data_deleted_columns = data_connected.drop(['bathrooms', 'yr_renovated',  'bedrooms', 'floors','condition',
+    data_deleted_columns = data_additional_attributes.drop(['bathrooms', 'yr_renovated',  'bedrooms', 'floors','condition',
                                                 'sqft_above', 'sqft_lot', 'sqft_living', 'sqft_basement'], axis=1)
-    cols = [col for col in data_deleted_columns.columns ]
-    data_scaled = MinMaxScaler().fit_transform(data_deleted_columns[cols])
-    return data_scaled
+    x= data_deleted_columns.astype(float)
+    list = np.asarray(x.values.tolist())
+    with open("analysis/scaler.pkl", "rb") as infile:
+        scaler = pickle.load(infile)
+        scaled= scaler.transform(list)
+    return scaled
 
 
 def add_additional_attributes(data):
@@ -58,8 +58,3 @@ def add_additional_attributes(data):
     data['binned_age'] = np.where(train_set['binned_age'].between(4, 9), 1, data['binned_age'])
     return data
 
-def get_rid_of_outliers(num_data):
-    Q1 = num_data.quantile(0.3)
-    Q3 = num_data.quantile(0.7)
-    IQR = Q3 - Q1
-    return num_data[~((num_data < (Q1 - 1.5 * IQR)) |(num_data > (Q3 + 1.5 * IQR))).any(axis=1)]

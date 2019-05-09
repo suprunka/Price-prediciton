@@ -18,7 +18,16 @@ import math
 from bokeh.embed import components
 from ast import literal_eval
 from datetime import datetime
+import threading
+from multiprocessing.pool import ThreadPool
 
+
+def thread_function():
+    return get_data();
+
+pool = ThreadPool(processes=1)
+res = pool.apply_async(thread_function)
+housing_n = res.get()
 
 def merc(lat, lon):
     r_major = 6378137.000
@@ -29,7 +38,7 @@ def merc(lat, lon):
     return x, y
 
 
-housing_n = get_data()
+
 valueOfSqM = 10.76
 housing_n = housing_n.drop(["sqft_living15", "sqft_lot15", 'waterfront'], axis=1)
 housing_n['floors'] = housing_n['floors'].str[1:-1]
@@ -43,6 +52,7 @@ housing['sqm_basement'] = round(housing['sqft_basement'] / valueOfSqM)
 housing = housing.drop(["sqft_living", "sqft_lot", "sqft_above", "sqft_basement"], axis=1)
 housing['date'] = housing['date'].apply(lambda x: x.replace(x, x[1:5] + "-" + x[5:7] + "-" + x[7:9]))
 housing['date'] = housing['date'].apply(lambda x: datetime.strptime(x, "%Y-%m-%d").date())
+
 
 
 def create_price_grade_chart():

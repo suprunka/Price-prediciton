@@ -9,10 +9,10 @@ from database import create_Tokens as account
 import prepare_for_prediction as pred
 import json
 from bson import json_util
-from analysis.dashboard_diagrams import *
 from bokeh.embed import components
 from bson.json_util import dumps
 from analysis import averaged_models
+from multiprocessing.pool import ThreadPool
 
 from flask_login import LoginManager, UserMixin, current_user, login_user, login_required, logout_user
 
@@ -27,6 +27,11 @@ login.init_app(app)
 app.config.update(
     SECRET_KEY='secret_key_iksde'
 )
+
+
+
+def thread_function():
+    from analysis.dashboard_diagrams import make_diagrams
 
 
 @login.unauthorized_handler
@@ -213,6 +218,10 @@ def stats():
 
 
 if __name__ == '__main__':
+    pool = ThreadPool(processes=1)
+    res = pool.apply_async(thread_function)
     app.run()
+
+
 
 
