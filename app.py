@@ -31,7 +31,7 @@ app.config.update(
 
 @login.unauthorized_handler
 def unauthorized():
-    return render_template('login.html', result='log')
+    return render_template('login.html', result='Login first to access this page.')
 
 
 class User(UserMixin):
@@ -54,7 +54,7 @@ def load_user(user_id):
 
 @app.route('/')
 def hello_world():
-    return render_template('main.html')\
+    return render_template('main.html')
 
 
 @app.route('/main')
@@ -72,7 +72,7 @@ def login():
             login_user(user)
             return render_template('agent_view.html')
         else:
-            return render_template('login.html', result='error')
+            return render_template('login.html', result='Wrong password or email.')
     else:
         return render_template('login.html')
 
@@ -122,27 +122,34 @@ def change_password():
         password2 = form_value["passwordCon"]
         token = form_value["token"]
         if password == password2:
-            if account.change_password(email=mail, token=token, new_password=password) is True:
-                return render_template('login.html')
+            user = account.connect_to_users().find_one({"email": mail})
+            is_the_same = account.check_password(password, user['password'])
+            if not is_the_same:
+                if account.change_password(email=mail, token=token, new_password=password) is True:
+                    return render_template('login.html')
+                else:
+                    return render_template('forgot_password.html', result='The token is incorrect.')
+            else:
+                return render_template('forgot_password.html', result="Can't change password for the same.")
         else:
-            return render_template('forgot_password.html', result='error')
+            return render_template('forgot_password.html', result='Passwords are not the same.')
     else:
         return render_template('forgot_password.html')
 
 
-# @app.route('/check_cred', methods=['GET', 'POST'])
-# def check_credentials():
-#     if request.method == 'POST':
-#         email = request.form['email']
-#         password = request.form['password']
-#         if account.log_in(email, password) is True:
-#             user = User(load_user(email))
-#             login_user(user)
-#             return render_template('agent_view.html')
-#         else:
-#             return render_template('login.html', result='error')
-#     else:
-#         return render_template('login.html')
+@app.route('/reset_password', methods=['GET', 'POST'])
+@login_required
+def reset_password():
+    if request.method == 'POST':
+        form_value = request.form
+        mail = form_value["email"]
+        token = form_value["token"]
+        if account.reset_password(token=token, email=mail) is True:
+            return render_template('login.html', result="Your password has been reset and sent on your e-mail. Use it to log in.")
+        else:
+            return render_template('reset_password.html', result='Token or e-mail are incorrect.')
+    else:
+        return render_template('reset_password.html')
 
 
 @app.route('/send_token', methods=['GET', 'POST'])

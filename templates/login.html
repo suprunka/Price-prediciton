@@ -10,14 +10,11 @@
 
 
 {% extends "layout.html" %}
-
       {% block content %}
 		<form id="form_content" action="/login" method="post">
 			<h1>Login </h1>
-			{% if result== 'error'%}<p style="color: #f1fff6">Login or password is incorrect.</p>
-			{% endif %}
-            {% if result== 'log'%}<p style="color: #f1fff6">Log in first to access this page</p>
-			{% endif %}
+			{{result}}
+			<p></p>
             <input type="text" placeholder="Mail" required name="email" id="mail" />
 			<p></p>
 				<input type="password" placeholder="Password" required  name="password" id="password" />

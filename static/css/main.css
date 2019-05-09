@@ -3,8 +3,10 @@ html { scroll-behavior: smooth; }
 .navbar navbar-inverse{
     background:#252527;
 }
-.container-fluid {    background: #252527;
+.container-fluid {
+  background: #252527;
 }
+
 
 .navbar {
   overflow: hidden;
@@ -14,13 +16,22 @@ html { scroll-behavior: smooth; }
   top: 0;
   font-size:17px;
   z-index:1000;
-
-
-letter-spacing: 5px;
 }
+
 .nav > li
 {
 padding-right:7vh;
+
+}
+
+#nav-item nav-link
+
+#about{
+text-align: center;
+font-size: 1rem;
+font-weight: 400;
+line-height: 1.5;
+color: #212529;
 }
 
 html, body
@@ -41,7 +52,7 @@ font-size: 20px;
 line-height: 1.8;
 word-spacing: 3px;
 min-height : 90hv;
-    overflow-y: auto;
+overflow-y: auto;
 
 }
 

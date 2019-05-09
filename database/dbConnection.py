@@ -10,7 +10,6 @@ def connect_to_database():
     return collection
 
 
-
 def get_data():
     result = DataFrame(list(connect_to_database().find({}, {'_id': 0})))
     return  result

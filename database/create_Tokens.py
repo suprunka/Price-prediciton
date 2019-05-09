@@ -2,7 +2,8 @@ from .dbConnection import *
 import hashlib, binascii, os, smtplib
 from bson.objectid import ObjectId
 from threading import Lock
-
+import string
+import random
 lock = Lock()
 
 def connect_to_tokens():
@@ -89,9 +90,6 @@ def register(email, password, token):
     return the_result
 
 
-
-
-
 def get_user_by_mail(email):
     result = connect_to_users().find_one({'email': email})
     return result
@@ -103,8 +101,11 @@ def get_user_by_id(_id):
 
 
 def log_in(email, password):
-    stored = connect_to_users().find_one({'email': email})['password']
-    return check_password(password, stored)
+    try:
+        stored = connect_to_users().find_one({'email': email})['password']
+        return check_password(password, stored)
+    except TypeError:
+        return False
 
 
 def change_password(email, token, new_password):
@@ -120,12 +121,33 @@ def change_password(email, token, new_password):
 
     return result_
 
+
 def send_mail(to, message):
     server = smtplib.SMTP('smtp.gmail.com', 25)
     server.starttls()
     server.login('predproject2004@gmail.com', '90809988Qwe')
     msg = "Dear " + to + ". " + message
     server.sendmail('predproject2004@gmail.com', to, msg)
+
+
+def generate_random_password():
+    letters = string.ascii_letters
+    return ''.join(random.choice(letters) for i in range(20))
+
+
+def reset_password(token, email):
+    result_ = False
+    connection = connect_to_users()
+    result = connection.find_one({'token.token': int(token), 'email': email})
+    password = generate_random_password()
+    if result is not None:
+        changed = connection.update_one({'token.token': int(token), 'email': email},
+                                        {'$set': {'password': hash_password(password)}})
+        if changed.modified_count == 1:
+            msg = 'Your password has been reset and now it is: ' + password
+            send_mail(email, msg)
+            result_ = True
+    return result_
 
 
 def hash_password(password):
@@ -151,8 +173,3 @@ def delete_account(token, password, email):
         msg = 'Your account has been deleted'
         send_mail(email, msg)
 
-
-# change_password('jak', 108758456820, 'mynewpassword')
-# log_in('jak', 'mynewpassword')
-# print(insert_1000_tokens())
-# send_mail('jakub23sa@wp.pl', 'siema')
