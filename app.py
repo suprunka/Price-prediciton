@@ -9,7 +9,7 @@ from database import create_Tokens as account
 import prepare_for_prediction as pred
 import json
 from bson import json_util
-from analysis.dashboard_diagrams import *
+#from analysis.dashboard_diagrams import *
 from bokeh.embed import components
 from bson.json_util import dumps
 from analysis import averaged_models
