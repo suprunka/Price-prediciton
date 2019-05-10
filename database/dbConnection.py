@@ -1,39 +1,36 @@
 from pymongo import MongoClient
 from pandas import DataFrame
 import pymongo
-from database.house import *
+import pandas as pd
 
-def connect_to_database():
-    connection = MongoClient("mongodb://jakub:90809988Qwe@thecluster-shard-00-00-zrxzv.mongodb.net:27017,thecluster-shard-00-01-zrxzv.mongodb.net:27017,thecluster-shard-00-02-zrxzv.mongodb.net:27017/test?ssl=true&replicaSet=theCluster-shard-0&authSource=admin&retryWrites=true")
-    db = pymongo.database.Database(connection, 'Project')
-    collection = pymongo.collection.Collection(db, 'Houses')
+
+def connect():
+    connection = MongoClient("mongodb+srv://jakub23:90809988Qwe@prediction-jm5ad.mongodb.net/test?retryWrites=true")
+
+    return pymongo.database.Database(connection, 'Project')
+
+
+def connect_to_tokens():
+    collection = pymongo.collection.Collection(connect(), 'Tokens')
+    return collection
+
+
+def connect_to_users():
+    collection = pymongo.collection.Collection(connect(), 'Users')
+    return collection
+
+
+def connect_to_houses():
+    collection = pymongo.collection.Collection(connect(), 'Houses')
     return collection
 
 
 def get_data():
-    result = DataFrame(list(connect_to_database().find({}, {'_id': 0})))
-    return  result
-
-
-def get_data_for_pred():
-    result = connect_to_database().find({}, {'_id': 0})
-    return  result
-
-
-def get_specific(id):
-    result = connect_to_database().find({'id': '"%s"'%id})
+    result = DataFrame(list(connect_to_houses().find({}, {'_id': 0, 'sqft_living15': 0, 'sqft_lot15': 0,
+                                                          'waterfront': 0})))
     return result
 
 
-def delete_specific(id):
-    result = connect_to_database().delete_one({'id': '"%s"'%id})
 
-
-def add_house(house):
-    house.sqft_above= float(house.sqft_above )*3.2808399
-    house.sqft_basement =float(house.sqft_basement )*3.2808399
-    house.sqft_lot =float(house.sqft_lot) *3.2808399
-    house.sqft_living= float(house.sqft_living) *3.2808399
-    connect_to_database().insert_one(house.__dict__)
 
 

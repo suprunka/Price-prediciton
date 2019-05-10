@@ -15,23 +15,21 @@
 
       {% block content %}
 
-		<form id="form_content" action="/register_agent_check" method="post">
+		<form id="form_content" action="/register_agent" method="post">
 			<h1 >Registration </h1>
-			{% if result== 'error'%}<p style="color: #f6f7ff">Error occured while creating the account. Try again</p>
-			{% endif %}
-
-				<input type="text" placeholder="Mail" required name="email" id="mail" />
+			{{ result }}
 			<p></p>
-				<input type="password" placeholder="Password" required  name="password" id="password" />
+			<input type="text" placeholder="Mail" required name="email" id="mail" />
 			<p></p>
-            	<input type="password" placeholder="Confirm password" required  name="passwordCon" id="passwordCon" />
-<p><div id="divCheckPasswordMatch"></div></p>
-                <input type="text" placeholder="Token" required  name="token" id="token" />
-<p></p>
-				<input type="submit" id="sub_btn" class="btn btn-outline-info" value="Register"/>
-				<p></p>
-
-		</form><!-- form -->
+			<input type="password" placeholder="Password" required  name="password" id="password" />
+			<p></p>
+			<input type="password" placeholder="Confirm password" required  name="passwordCon" id="passwordCon" />
+			<p><div id="divCheckPasswordMatch"></div></p>
+			<input type="text" placeholder="Token" required  name="token" id="token" />
+			<p></p>
+			<input type="submit" id="sub_btn" class="btn btn-outline-info" value="Register"/>
+			<p></p>
+		</form>
 		
 
 <script type="text/javascript">

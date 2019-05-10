@@ -1,4 +1,4 @@
-from .create_Tokens import *
+from dbConnection import connect_to_houses
 import random
 import datetime
 
@@ -47,3 +47,12 @@ def set_properties(house, dictionary):
 
     house.__call__(dictionary)
     return house
+
+
+def add_house(house):
+    house.sqft_above = float(house.sqft_above )*3.2808399
+    house.sqft_basement = float(house.sqft_basement )*3.2808399
+    house.sqft_lot = float(house.sqft_lot) *3.2808399
+    house.sqft_living = float(house.sqft_living) *3.2808399
+    print(house.date)
+    connect_to_houses().insert_one(house.__dict__)

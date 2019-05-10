@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 import pickle
+import datetime
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
@@ -14,15 +15,11 @@ from sklearn import neighbors
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.linear_model import LinearRegression, ElasticNet, Lasso
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.base import BaseEstimator, TransformerMixin, RegressorMixin, clone
 from sklearn.model_selection import KFold, cross_val_score
 import xgboost as xgb
 import lightgbm as lgb
-import lightgbm as lgb
-from database.dbConnection import *
+from database.dbConnection import get_data
 from analysis.averaged_models import StackingAveragedModels
-import math
-
 
 # Where to save the figures
 PROJECT_ROOT_DIR = r"D:\\"
@@ -51,7 +48,6 @@ high = .95
 
 
 # <editor-fold desc='Dropping unnecessary columns'>
-housing_n = housing_n.drop(["sqft_living15", "sqft_lot15", 'date', 'waterfront'], axis=1)
 housing_n['floors'] = housing_n['floors'].str[1:-1]
 housing_n['zipcode'] = housing_n['zipcode'].str[1:-1]
 housing = housing_n.convert_objects(convert_numeric=True)
@@ -316,8 +312,9 @@ def checkAllModels(models_list):
 #
 # n_estimators=50, random_state=42, max_features="auto", max_depth=100,
 #                                    min_samples_leaf=4, bootstrap=True, min_impurity_decrease=100
-lin_reg = LinearRegression(copy_X=True, fit_intercept=False, n_jobs=-1,normalize=True)
 
+
+lin_reg = LinearRegression(copy_X=True, fit_intercept=False, n_jobs=-1,normalize=True)
 
 
 bayesian_ridge = linear_model.BayesianRidge(n_iter=100, tol=0.01, alpha_1=0.0001, alpha_2=0.000001)
@@ -327,20 +324,21 @@ model_ridge=linear_model.Ridge(alpha=10, copy_X=True, fit_intercept=False, max_i
 tree_reg = DecisionTreeRegressor(max_depth=500, min_impurity_decrease=0.5, min_samples_leaf=2, min_samples_split=64,
                                  min_weight_fraction_leaf=0.0, presort=False, splitter='random')
 
-forest_reg =  RandomForestRegressor(n_jobs= -1, min_weight_fraction_leaf=0., n_estimators=100, min_samples_split=16,
-                                    min_samples_leaf=8, min_impurity_decrease=.5, max_depth=50)
+forest_reg = RandomForestRegressor(n_jobs= -1, min_weight_fraction_leaf=0., n_estimators=100, min_samples_split=16,
+                                   min_samples_leaf=8, min_impurity_decrease=.5, max_depth=50)
 
-knn=neighbors.KNeighborsRegressor(weights='distance', n_neighbors=10, n_jobs=None, leaf_size=360,
+knn = neighbors.KNeighborsRegressor(weights='distance', n_neighbors=10, n_jobs=None, leaf_size=360,
                                    algorithm='ball_tree')
 
-lasso =  Lasso(warm_start=False, tol=0.01, selection='random', precompute=True,
-                                            positive=False,normalize=False, max_iter=10, fit_intercept=False,
-                                            copy_X=True, alpha=5.0)
+lasso = Lasso(warm_start=False, tol=0.01, selection='random', precompute=True,
+              positive=False,normalize=False, max_iter=10, fit_intercept=False,
+              copy_X=True, alpha=5.0)
+
 #lepszy wynik bez make_pipeline dla lasso i eNet
 ENet = ElasticNet(warm_start=False, tol=0.001, selection='random',
-                                                precompute=True, positive=False, normalize=False,
-                                                max_iter=1000, l1_ratio=0.1, fit_intercept=False,
-                                                copy_X=True, alpha=0.)
+                  precompute=True, positive=False, normalize=False,
+                  max_iter=1000, l1_ratio=0.1, fit_intercept=False,
+                  copy_X=True, alpha=0.)
 
 KRR = KernelRidge(alpha=0.6, kernel='polynomial', degree=2, coef0=2.5)
 
@@ -366,7 +364,7 @@ model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
 def rmsle_cv_(model):
     cv = KFold(n_splits=5, shuffle=True, random_state=42)
     score = np.sqrt(- cross_val_score(model, housing_prepared, housing_labels, scoring="neg_mean_squared_error", cv=cv))
-    return(score)
+    return score
 
 
 # def stacking_avg_for_all_combinations_of_models(models):
@@ -380,12 +378,12 @@ def rmsle_cv_(model):
 #         print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
 
 models = [forest_reg ,GBoost, model_xgb,  model_lgb]
-#checkAllModels(models)
-#stacking_avg_for_all_combinations_of_models(models)
+# checkAllModels(models)
+# stacking_avg_for_all_combinations_of_models(models)
 averaged_models = StackingAveragedModels(base_models=(GBoost, model_xgb,  model_lgb), meta_model =forest_reg)
 averaged_models.fit(housing_prepared, housing_labels)
-#score = rmsle_cv_(averaged_models)
-#print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
+# score = rmsle_cv_(averaged_models)
+# print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
 
 # gridSearchCV(housing_prepared, housing_labels)
 print("przed")

@@ -4,23 +4,23 @@ from bokeh.layouts import column
 from bokeh.models import ColumnDataSource, Legend, BasicTickFormatter,HoverTool
 from bokeh.models.widgets import Panel, Tabs
 import pandas as pd
-from math import pi
 from bokeh.transform import cumsum
 from database.dbConnection import get_data
-from bokeh.palettes import Category20c
-from bokeh.tile_providers import CARTODBPOSITRON
+import bokeh.palettes as color
+
+import bokeh.tile_providers as map
 import math
 from bokeh.embed import components
 from datetime import datetime
 
 
-def merc_x(lon):
+def get_x(lon):
     r_major = 6378137.000
     x = r_major * math.radians(lon)
     return x
 
 
-def merc_y(lon, lat):
+def get_y(lon, lat):
     r_major = 6378137.000
     x = r_major * math.radians(lon)
     scale = x / lon
@@ -30,7 +30,6 @@ def merc_y(lon, lat):
 
 housing_n = get_data()
 valueOfSqM = 10.76
-housing_n = housing_n.drop(["sqft_living15", "sqft_lot15", 'waterfront'], axis=1)
 housing_n['floors'] = housing_n['floors'].str[1:-1]
 housing_n['zipcode'] = housing_n['zipcode'].str[1:-1]
 housing_n['date'] = housing_n['date'].apply(lambda x: x.replace(x, x[0:10]))
@@ -46,16 +45,16 @@ housing['date'] = housing['date'].apply(lambda x: datetime.strptime(x, "%Y-%m-%d
 
 def create_price_grade_chart():
     groupByGrade = housing[['price', 'grade']].groupby(['grade']).mean()
-    groupByGrade['angle'] = groupByGrade['price'] / groupByGrade['price'].sum() * 2 * pi
-    groupByGrade['color'] = Category20c[len(groupByGrade.index)]
+    groupByGrade['angle'] = groupByGrade['price'] / groupByGrade['price'].sum() * 2 * math.pi
+    groupByGrade['color'] = color.Category20c[len(groupByGrade.index)]
     groupByGrade['index'] = groupByGrade.index
-    p1 = figure( title="Average price of houses depending on grade",
+    p1 = figure(title="Average price of houses depending on grade",
                 toolbar_location=None, tools='hover', sizing_mode="scale_width")
     p1.ygrid.grid_line_color = None
     p1.xaxis.visible = False
     p1.yaxis.visible = False
-    p1.toolbar.logo=None
-    p1.toolbar_location= None
+    p1.toolbar.logo = None
+    p1.toolbar_location = None
     p1.wedge(x=0, y=1, radius=0.4, start_angle=cumsum('angle', include_zero=True),
              end_angle=cumsum('angle'), line_color="black", fill_color='color',
              legend='grade', source=groupByGrade)
@@ -68,13 +67,13 @@ def create_price_grade_chart():
 def create_location_chart():
     housing['coordinates_x'] = ""
     housing['coordinates_y'] = ""
-    housing['coordinates_x'] = np.vectorize(merc_x)(housing['long'])
-    housing['coordinates_y'] = np.vectorize(merc_y)(housing['long'], housing['lat'])
-    p2 = figure(x_axis_type="mercator", y_axis_type="mercator")
-    p2.add_tile(CARTODBPOSITRON)
+    housing['coordinates_x'] = np.vectorize(get_x)(housing['long'])
+    housing['coordinates_y'] = np.vectorize(get_y)(housing['long'], housing['lat'])
+    p2 = figure(x_axis_type="mercator", y_axis_type="mercator", plot_width=1200)
+    p2.add_tile(map.CARTODBPOSITRON)
     p2.circle(x=housing['coordinates_x'], y=housing['coordinates_y'],  line_color="#FF0000",
-             fill_color="#FF0000", fill_alpha=0.05)
-    tab2 = Panel(child=p2, title='Square meters')
+              fill_color="#FF0000", fill_alpha=0.05)
+    tab2 = Panel(child=p2, title='Map of houses')
     return tab2
 
 
@@ -158,7 +157,7 @@ def create_renovated_chart():
     number_of_renovated = group_by_renovated.where(group_by_renovated['index'] > 0)['price'].sum().sum()
     dataframe = pd.DataFrame([['Renovated', number_of_renovated], ['Not renovated', number_of_not_renovated]],
                              columns=['type', 'number'])
-    dataframe['angle'] = dataframe['number'] / dataframe['number'].sum() * 2 * pi
+    dataframe['angle'] = dataframe['number'] / dataframe['number'].sum() * 2 * math.pi
 
     dataframe['color'] = ['green', 'orange']
     p6 = figure(plot_height=300, title="Number of renovated and not renovated houses", toolbar_location=None,
@@ -208,7 +207,9 @@ def create_date_price_sum_chart():
 
 
 def make_diagrams():
-    tabs = Tabs(tabs=[create_location_chart()], sizing_mode="scale_width")
+    tabs = Tabs(tabs=[create_price_grade_chart(),create_location_chart(), create_condition_chart(),
+                      create_square_meters_chart(), create_zip_code_chart(), create_renovated_chart(),
+                      create_date_price_count_chart(), create_date_price_sum_chart()], sizing_mode="scale_width")
     script, div = components(tabs)
     return script, div
 
