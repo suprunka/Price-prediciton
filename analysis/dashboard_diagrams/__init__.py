@@ -1,14 +1,13 @@
 import numpy as np
 from bokeh.plotting import figure
 from bokeh.layouts import column
-from bokeh.models import ColumnDataSource, Legend, BasicTickFormatter,HoverTool
+from bokeh.models import ColumnDataSource, Legend, BasicTickFormatter, HoverTool
 from bokeh.models.widgets import Panel, Tabs
 import pandas as pd
 from bokeh.transform import cumsum
 from database.dbConnection import get_data
 import bokeh.palettes as color
-
-import bokeh.tile_providers as map
+import bokeh.tile_providers as map_
 import math
 from bokeh.embed import components
 from datetime import datetime
@@ -44,10 +43,10 @@ housing['date'] = housing['date'].apply(lambda x: datetime.strptime(x, "%Y-%m-%d
 
 
 def create_price_grade_chart():
-    groupByGrade = housing[['price', 'grade']].groupby(['grade']).mean()
-    groupByGrade['angle'] = groupByGrade['price'] / groupByGrade['price'].sum() * 2 * math.pi
-    groupByGrade['color'] = color.Category20c[len(groupByGrade.index)]
-    groupByGrade['index'] = groupByGrade.index
+    group_by_grade = housing[['price', 'grade']].groupby(['grade']).mean()
+    group_by_grade['angle'] = group_by_grade['price'] / group_by_grade['price'].sum() * 2 * math.pi
+    group_by_grade['color'] = color.Category20c[len(group_by_grade.index)]
+    group_by_grade['index'] = group_by_grade.index
     p1 = figure(title="Average price of houses depending on grade",
                 toolbar_location=None, tools='hover', sizing_mode="scale_width")
     p1.ygrid.grid_line_color = None
@@ -57,7 +56,7 @@ def create_price_grade_chart():
     p1.toolbar_location = None
     p1.wedge(x=0, y=1, radius=0.4, start_angle=cumsum('angle', include_zero=True),
              end_angle=cumsum('angle'), line_color="black", fill_color='color',
-             legend='grade', source=groupByGrade)
+             legend='grade', source=group_by_grade)
     hover = p1.select(dict(type=HoverTool))
     hover.tooltips = [('Average price', '@price{0,0}$'), ('Grade', '@grade')]
     tab1 = Panel(child=p1, title='Grade')
@@ -69,10 +68,14 @@ def create_location_chart():
     housing['coordinates_y'] = ""
     housing['coordinates_x'] = np.vectorize(get_x)(housing['long'])
     housing['coordinates_y'] = np.vectorize(get_y)(housing['long'], housing['lat'])
+    source = ColumnDataSource(data=dict(x=housing['coordinates_x'],
+                                        y=housing['coordinates_y'],
+                                        price=housing['price']))
     p2 = figure(x_axis_type="mercator", y_axis_type="mercator", plot_width=1200)
-    p2.add_tile(map.CARTODBPOSITRON)
-    p2.circle(x=housing['coordinates_x'], y=housing['coordinates_y'],  line_color="#FF0000",
+    p2.add_tile(map_.CARTODBPOSITRON)
+    p2.circle(x='x', y='y', source=source,  line_color="#FF0000",
               fill_color="#FF0000", fill_alpha=0.05)
+    p2.add_tools(HoverTool(tooltips=[("Price", "@price{0.0}$")]))
     tab2 = Panel(child=p2, title='Map of houses')
     return tab2
 
@@ -85,8 +88,8 @@ def create_condition_chart():
     t['condition'] = t['condition'].astype(str)
     data_dict = {'x': t['index'], 'y': t['condition']}
     source = ColumnDataSource(data=data_dict)
-    p3 = figure(plot_height=300, sizing_mode="scale_width", x_range=data_dict['x'],  title='Number of houses in various conditions',
-                tools ="wheel_zoom,reset")
+    p3 = figure(plot_height=300, sizing_mode="scale_width", x_range=data_dict['x'],
+                title='Number of houses in various conditions', tools="wheel_zoom,reset")
     p3.vbar(x='x', top='y', source=source, width=0.7)
     p3.add_tools(HoverTool(tooltips=[('Value', '@y{int}')]))
     p3.xaxis.axis_label = "Conditions"
@@ -99,7 +102,8 @@ def create_condition_chart():
 
 
 def create_square_meters_chart():
-    group_by_floors = housing[['sqm_living', 'sqm_above', 'sqm_basement', 'sqm_lot', 'floors']].groupby(['floors']).mean()
+    group_by_floors = housing[['sqm_living', 'sqm_above', 'sqm_basement',
+                               'sqm_lot', 'floors']].groupby(['floors']).mean()
     group_by_floors['index'] = group_by_floors.index
     data_dict = {'x': group_by_floors['index'], 'living': group_by_floors['sqm_living'],
                  'above': group_by_floors['sqm_above'],

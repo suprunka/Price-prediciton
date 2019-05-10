@@ -50,9 +50,9 @@ def set_properties(house, dictionary):
 
 
 def add_house(house):
-    house.sqft_above = float(house.sqft_above )*3.2808399
-    house.sqft_basement = float(house.sqft_basement )*3.2808399
-    house.sqft_lot = float(house.sqft_lot) *3.2808399
-    house.sqft_living = float(house.sqft_living) *3.2808399
+    house.sqft_above = float(house.sqft_above)*10.76391
+    house.sqft_basement = float(house.sqft_basement)*10.76391
+    house.sqft_lot = float(house.sqft_lot)*10.76391
+    house.sqft_living = float(house.sqft_living)*10.76391
     print(house.date)
     connect_to_houses().insert_one(house.__dict__)

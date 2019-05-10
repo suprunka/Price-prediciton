@@ -102,7 +102,6 @@ virt['all_rooms'] = virt['bathrooms'] + virt['bedrooms']
 virt.loc[virt.all_rooms== 0, 'all_rooms'] = 1
 virt['avg_room_size'] = virt['sqm_living']/ virt['all_rooms']
 virt['avg_floor_sq'] = virt['sqm_above'] / virt['floors']
-virt['was_seen'] = virt.loc[virt.view > 0, 'was_seen'] = 1
 
 corr_matrix = virt.corr()
 

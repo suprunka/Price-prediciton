@@ -1,6 +1,6 @@
 import pickle
 from flask_cors import CORS
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify,redirect
 from database import house as house_db
 from database import dbConnection as db
 from database import manage as account
@@ -72,7 +72,7 @@ def login():
         if account.log_in(email, password) is True:
             user = User(account.get_user_by_mail(email)['token']['_id'])
             login_user(user)
-            return render_template('main.html')
+            return redirect('main')
         else:
             return render_template('login.html', result='Wrong password or email.')
     else:
@@ -99,7 +99,7 @@ def add_house():
     json_val = jsonify(form_value)
     house = house_db.create_house()
     house = house_db.set_properties(house, form_value)
-    db.add_house(house)
+    house_db.add_house(house)
     return render_template('add_house_result.html', result=form_value)
 
 
