@@ -17,6 +17,7 @@ from sklearn.linear_model import LinearRegression, ElasticNet, Lasso
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.model_selection import KFold, cross_val_score
 import xgboost as xgb
+import math
 import lightgbm as lgb
 from database.dbConnection import get_data
 from analysis.averaged_models import StackingAveragedModels
@@ -37,7 +38,7 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 now = datetime.datetime.now()
 
 
-housing_n =get_data()
+housing_n =pd.read_csv("house.csv")
 valueOfSqM = 10.76
 numberOfBins = 4
 divider = 1000
@@ -99,7 +100,7 @@ def get_rid_of_outliers(num_data):
 
 
 def add_additional_attributes(data):
-    data['floors']=  data['floors'].astype(float)
+    # data['floors']=  data['floors'].astype(float)
     data['all_rooms'] = data['bathrooms'] + data['bedrooms']
     data.loc[data.all_rooms == 0, 'all_rooms'] = 1
     data['avg_room_size'] = data['sqm_living']/ data['all_rooms']
@@ -130,13 +131,9 @@ def add_additional_attributes(data):
 
 def transform_data(data):
     data_additional_attributes = add_additional_attributes(data)
-    data_filtered = get_rid_of_outliers(data_additional_attributes)[
-        ['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living']]
-    data_connected = pd.merge(data_filtered, data_additional_attributes, how='inner',
-                              on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living'])
-    data_no_duplicates = data_connected.drop_duplicates(['id'])
-    data_deleted_columns = data_no_duplicates.drop(['bathrooms', 'yr_renovated','view', 'bedrooms', 'floors','id', 'price',
+    data_deleted_columns = data_additional_attributes.drop(['bathrooms', 'yr_renovated','view', 'bedrooms', 'floors','id', 'price',
                                                     'date' ,'waterfront','condition'], axis=1)
+
     cols = [col for col in data_deleted_columns.columns if col not in ['price', 'id']]
     data_deleted_columns=data_deleted_columns[['sqm_basement', 'sqm_above', 'sqm_lot','sqm_living', 'grade', 'yr_built', 'lat', 'long','all_rooms', 'avg_room_size', 'avg_floor_sq', 'overall', 'zipcode_cat', 'binned_age']]
 
@@ -147,24 +144,47 @@ def transform_data(data):
     return data_scaled
 
 
-def get_labels(data):
-    data_additional_attributes = add_additional_attributes(data)
-    data_filtered = get_rid_of_outliers(data_additional_attributes)[
-        ['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living']]
-    data_connected = pd.merge(data_filtered, data_additional_attributes, how='inner',
+def transform_data_forav_calc(data):
+    additional_attributes = add_additional_attributes(data)
+    housing_out = additional_attributes[['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living']]
+
+    data_filtered = get_rid_of_outliers(housing_out)
+    data_connected = pd.merge(data_filtered, additional_attributes, how='inner',
                               on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living'])
     data_no_duplicates = data_connected.drop_duplicates(['id'])
-    data_prepared = data_no_duplicates['price']
-    to_return = data_prepared.values
+
+
+    cols = [col for col in data_no_duplicates.columns if col not in ['price', 'id']]
+    data_deleted_columns=data_no_duplicates[['sqm_basement', 'sqm_above', 'sqm_lot','sqm_living', 'grade', 'yr_built', 'lat', 'long','all_rooms', 'avg_room_size', 'avg_floor_sq', 'overall', 'zipcode_cat', 'binned_age', 'price']]
+
+    scaler = MinMaxScaler()
+    scaler.fit_transform(data_deleted_columns)
+    with open("scalerC.pkl", "wb") as outfile:
+        pickle.dump(scaler, outfile)
+    return data_deleted_columns
+
+
+def get_labels(data):
+    data_additional_attributes = add_additional_attributes(data)
+    data_prepared = data_additional_attributes['price']
+    to_return = data_prepared
     return to_return
 
 
 
 
-# housing_n['floors'] = housing_n['floors'].str[1:-1]
+# ['fhousing_nloors'] = housing_n['floors'].str[1:-1]
 # housing_n['zipcode'] = housing_n['zipcode'].str[1:-1]
-housing_n = convert_to_sqm(housing_n)
 housing = housing_n.convert_objects(convert_numeric=True)
+housing_out= housing [['sqft_basement', 'sqft_above', 'sqft_lot', 'bedrooms', 'bathrooms', 'sqft_living']]
+
+data_filtered = get_rid_of_outliers(housing_out)
+data_connected = pd.merge(data_filtered, housing, how='inner',
+                          on=['sqft_basement', 'sqft_above', 'sqft_lot', 'bedrooms', 'bathrooms', 'sqft_living'])
+data_no_duplicates = data_connected.drop_duplicates(['id'])
+
+housing= convert_to_sqm(housing)
+housing = housing.reset_index(drop=True)
 # housing = housing[:-1]
 
 # Creating a price category
@@ -349,11 +369,41 @@ models = [forest_reg ,GBoost, model_xgb,  model_lgb]
 averaged_models = StackingAveragedModels(base_models=(GBoost, model_xgb,  model_lgb), meta_model =forest_reg)
 averaged_models.fit(housing_prepared, housing_labels)
 
-score = rmsle_cv_(averaged_models)
+score = rmsle_cv_(forest_reg)
 print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
 
 # gridSearchCV(housing_prepared, housing_labels)
 print("przed")
 forest_reg.fit(housing_prepared, housing_labels)
-pickle.dump(averaged_models, open('modelfin.pkl', 'wb'))
-print("koniec")
+# # pickle.dump(averaged_models, open('modelfin.pkl', 'wb'))
+# with open("scaler.pkl", "rb") as infile:
+#     scaler = pickle.load(infile)
+#     scaled = scaler.transform([[0,99,903,99,7,1963,47.40950 ,-122.31500, 4.5, 22, 99, 10,0,1]])
+#     f = forest_reg.predict(scaled)
+#     print(f)
+
+def calculate_accurancy():
+    houses = strat_test_set.copy()
+    houses = houses.convert_objects(convert_numeric=True)
+    # houses = convert_to_sqm(houses)
+    houses = transform_data_forav_calc(houses)
+    houses= houses.reset_index()
+    totaldiff = 0
+    totalprice = 0
+    for i in range(len(houses)):
+        price = houses.loc[i,'price']
+        with open("scaler.pkl", "rb") as infile:
+            scaler = pickle.load(infile)
+            h = [houses.loc[i,'sqm_basement'],houses.loc[i,'sqm_above'],houses.loc[i,'sqm_lot'],houses.loc[i,'sqm_living'],houses.loc[i,'grade'],houses.loc[i,'yr_built'],houses.loc[i,'lat'],houses.loc[i,'long'],houses.loc[i,'all_rooms'],houses.loc[i,'avg_room_size'],houses.loc[i,'avg_floor_sq'],houses.loc[i,'overall'],houses.loc[i,'zipcode_cat'],houses.loc[i,'binned_age']]
+            z=np.asarray(h).reshape(1, -1)
+            scaled = scaler.transform(z)
+            caclulated_price= averaged_models.predict(scaled)[0]
+            # caclulated_price= forest_reg.predict(scaled)[0]
+            diff= math.fabs(price - caclulated_price)
+            totaldiff += diff
+            totalprice += price
+    x= totaldiff/totalprice
+    print(1-x)
+calculate_accurancy()
+# a=averaged_models.predict(scaled)
+# print(a)
