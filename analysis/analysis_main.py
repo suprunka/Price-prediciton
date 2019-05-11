@@ -37,8 +37,7 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 now = datetime.datetime.now()
 
 
-housing_n =pd.read_csv('house.csv')
-# Constant values
+housing_n =get_data()
 valueOfSqM = 10.76
 numberOfBins = 4
 divider = 1000
@@ -139,8 +138,9 @@ def transform_data(data):
     data_deleted_columns = data_no_duplicates.drop(['bathrooms', 'yr_renovated','view', 'bedrooms', 'floors','id', 'price',
                                                     'date' ,'waterfront','condition'], axis=1)
     cols = [col for col in data_deleted_columns.columns if col not in ['price', 'id']]
-    scaler = MinMaxScaler()
+    data_deleted_columns=data_deleted_columns[['sqm_basement', 'sqm_above', 'sqm_lot','sqm_living', 'grade', 'yr_built', 'lat', 'long','all_rooms', 'avg_room_size', 'avg_floor_sq', 'overall', 'zipcode_cat', 'binned_age']]
 
+    scaler = MinMaxScaler()
     data_scaled = scaler.fit_transform(data_deleted_columns[cols])
     with open("scaler.pkl", "wb") as outfile:
         pickle.dump(scaler, outfile)
@@ -183,6 +183,7 @@ for train_index, test_index in split.split(housing, housing["price_cat"]):
 for set_ in (strat_train_set, strat_test_set):
     set_.drop("price_cat", axis=1, inplace=True)
 
+housing = strat_train_set.copy()
 housing_labels = get_labels(housing)
 test_X= transform_data(strat_test_set)
 test_y = get_labels(strat_test_set)
