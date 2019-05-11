@@ -6,7 +6,6 @@ import pandas as pd
 
 def connect():
     connection = MongoClient("mongodb+srv://jakub23:90809988Qwe@prediction-jm5ad.mongodb.net/test?retryWrites=true")
-
     return pymongo.database.Database(connection, 'Project')
 
 
