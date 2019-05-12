@@ -119,12 +119,16 @@ def transform_data(data):
                                                  'yr_built', 'lat', 'long', 'all_rooms', 'avg_room_size', 'avg_floor_sq',
                                                  'overall', 'zipcode_cat', 'binned_age',
 
-                                                 'bathrooms', 'bedrooms', 'condition', 'floors',  'yr_renovated']].reset_index(drop=True)
-    scaler = MinMaxScaler()
-    data_scaled = scaler.fit_transform(data_deleted_columns[cols])
+                                                 'bathrooms', 'bedrooms', 'condition',
+                                                 'floors',  'yr_renovated']].reset_index(drop=True)
+    from sklearn.preprocessing import Normalizer
+    normalizer = Normalizer()
+    # scaler = MinMaxScaler()
+    data_normalized = normalizer.fit_transform(data_deleted_columns[cols])
+    # data_scaled = scaler.fit_transform(data_deleted_columns[cols])
     with open("scaler.pkl", "wb") as outfile:
-        pickle.dump(scaler, outfile)
-    return data_scaled
+        pickle.dump(normalizer, outfile)
+    return data_normalized
     # return data_deleted_columns
 
 
@@ -148,12 +152,21 @@ def transform_data_for_average_calculation(data):
                                                    'zipcode_cat', 'binned_age','bathrooms', 'bedrooms', 'condition',
                                                    'floors','yr_renovated']]
 
-    scaler = MinMaxScaler()
-    scaler.fit_transform(data_deleted_columns_scale)
-    with open("scalerC.pkl", "wb") as outfile:
-        pickle.dump(scaler, outfile)
-    return data_deleted_columns
+    # scaler = MinMaxScaler()
+    # scaler.fit_transform(data_deleted_columns_scale)
+    # with open("scalerC.pkl", "wb") as outfile:
+    #     pickle.dump(scaler, outfile)
+    # return data_deleted_columns
 
+    from sklearn.preprocessing import Normalizer
+    normalizer = Normalizer()
+    # scaler = MinMaxScaler()
+    data_normalized = normalizer.fit_transform(data_deleted_columns_scale)
+    # data_scaled = scaler.fit_transform(data_deleted_columns[cols])
+    with open("scalerC.pkl", "wb") as outfile:
+        pickle.dump(normalizer, outfile)
+    return data_normalized
+    # return data_deleted_columns
 
 
 def get_labels(data):
@@ -381,22 +394,22 @@ averaged_models = StackingAveragedModels(base_models=(GBoost, model_lgb, model_x
 averaged_models.fit(housing_prepared, housing_labels)
 forest_reg.fit(housing_prepared, housing_labels)
 
-score = rmsle_cv_(forest_reg)
-print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
-list = [[9,91,383,100,7,1919,47.67710,-122.31900,4,25,91,10,1,0,1,3,3]]
-with open("scaler.pkl", "rb") as infile:
-    scaler = pickle.load(infile)
-    scaled = scaler.transform(list)
-    # gridSearchCV(housing_prepared, housing_labels)
-    print("przed")
-
-    forest_reg.fit(housing_prepared, housing_labels)
-    pickle.dump(averaged_models, open('modelfin.pkl', 'wb'))
-    a = averaged_models.predict(scaled)
-    f = forest_reg.predict(scaled)
-    print(a)
-    print(f)
-    print("koniec")
+# score = rmsle_cv_(forest_reg)
+# print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
+# list = [[9,91,383,100,7,1919,47.67710,-122.31900,4,25,91,10,1,0,1,3,3]]
+# with open("scaler.pkl", "rb") as infile:
+#     scaler = pickle.load(infile)
+#     scaled = scaler.transform(list)
+#     # gridSearchCV(housing_prepared, housing_labels)
+#     print("przed")
+#
+#     forest_reg.fit(housing_prepared, housing_labels)
+#     pickle.dump(averaged_models, open('modelfin.pkl', 'wb'))
+#     a = averaged_models.predict(scaled)
+#     f = forest_reg.predict(scaled)
+#     print(a)
+#     print(f)
+#     print("koniec")
 
 
 def calculate_accurancy():
@@ -429,6 +442,6 @@ def calculate_accurancy():
     print(1-x)
 
 
-# calculate_accurancy()
-#
-#
+calculate_accurancy()
+
+

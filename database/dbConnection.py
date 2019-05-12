@@ -5,7 +5,7 @@ import pandas as pd
 
 
 def connect():
-    connection = MongoClient("mongodb+srv://jakub23:90809988Qwe@prediction-jm5ad.mongodb.net/test?retryWrites=true")
+    connection = MongoClient("mongodb://drugi:90809988Qwe@prediction-shard-00-00-jm5ad.mongodb.net:27017,prediction-shard-00-01-jm5ad.mongodb.net:27017,prediction-shard-00-02-jm5ad.mongodb.net:27017/test?ssl=true&replicaSet=Prediction-shard-0&authSource=admin&retryWrites=true")
     return pymongo.database.Database(connection, 'Project')
 
 
