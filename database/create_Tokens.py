@@ -1,4 +1,4 @@
-from dbConnection import connect_to_tokens, connect_to_users
+from database.dbConnection import connect_to_tokens, connect_to_users
 from threading import Lock
 import datetime
 from manage import send_mail
