@@ -106,4 +106,3 @@ def delete_account(token, password, email):
         connect_to_tokens().update_one(connect_to_tokens().find_one({'token': token}), {"$set": {'isUsed': False}})
         msg = 'Your account has been deleted'
         send_mail(email, msg)
-

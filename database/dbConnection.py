@@ -25,7 +25,7 @@ def connect_to_houses():
 
 
 def get_data():
-    result = DataFrame(list(connect_to_houses().find({}, {'_id': 0, 'id':0,
+    result = DataFrame(list(connect_to_houses().find({}, {'_id': 0,
                                                           'sqft_living15': 0, 'sqft_lot15': 0,
                                                           'waterfront': 0, 'view':0})))
     return result

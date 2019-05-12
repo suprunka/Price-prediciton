@@ -38,7 +38,7 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 now = datetime.datetime.now()
 
 
-housing_n =pd.read_csv("house.csv")
+housing_n =get_data()
 valueOfSqM = 10.76
 numberOfBins = 4
 divider = 1000
@@ -47,23 +47,13 @@ low = .05
 high = .95
 
 
-
-
-# <editor-fold desc='Creating columns which represent data in square meters'>
 def convert_to_sqm(housing):
     housing['sqm_living'] = round(housing['sqft_living']/valueOfSqM)
     housing['sqm_lot'] = round(housing['sqft_lot']/valueOfSqM)
     housing['sqm_above'] = round(housing['sqft_above']/valueOfSqM)
     housing['sqm_basement'] = round(housing['sqft_basement']/valueOfSqM)
-    # <editor-fold desc='Dropping columns which represent data in square foots'>
-    housing = housing.drop(["sqft_living", "sqft_lot", "sqft_above", "sqft_basement", "sqft_living15", "sqft_lot15"], axis=1)
-    # </editor-fold>
-
+    housing = housing.drop(["sqft_living", "sqft_lot", "sqft_above", "sqft_basement"], axis=1)
     return housing
-
-
-
-# Creating bins using the price category
 
 
 def create_bins(maximum, minimum):
@@ -77,30 +67,17 @@ def create_bins(maximum, minimum):
     x.sort()
     return x
 
-#
-# housing = strat_train_set.copy()
-# # Creating copy of dataset for virtualization
-# virt = housing.copy()
-# virt['all_rooms'] = virt['bathrooms'] + virt['bedrooms']
-# # virt.loc[virt.all_rooms== 0, 'all_rooms'] = 1
-# # virt['avg_room_size'] = virt['sqm_living']/ virt['all_rooms']
-# # virt['avg_floor_sq'] = virt['sqm_above'] / virt['floors']
-#
-# corr_matrix = virt.corr()
-#
-# virt_num = virt
-
 
 # Getting rid of outliers
 def get_rid_of_outliers(num_data):
-    Q1 = num_data.quantile(0.3)
-    Q3 = num_data.quantile(0.7)
+    Q1 = num_data.quantile(0.25)
+    Q3 = num_data.quantile(0.75)
     IQR = Q3 - Q1
     return num_data[~((num_data < (Q1 - 1.5 * IQR)) |(num_data > (Q3 + 1.5 * IQR))).any(axis=1)]
 
 
 def add_additional_attributes(data):
-    # data['floors']=  data['floors'].astype(float)
+    data['floors']=  data['floors'].astype(float)
     data['all_rooms'] = data['bathrooms'] + data['bedrooms']
     data.loc[data.all_rooms == 0, 'all_rooms'] = 1
     data['avg_room_size'] = data['sqm_living']/ data['all_rooms']
@@ -131,20 +108,27 @@ def add_additional_attributes(data):
 
 def transform_data(data):
     data_additional_attributes = add_additional_attributes(data)
-    data_deleted_columns = data_additional_attributes.drop(['bathrooms', 'yr_renovated','view', 'bedrooms', 'floors','id', 'price',
-                                                    'date' ,'waterfront','condition'], axis=1)
-
+    data_filtered = get_rid_of_outliers(data_additional_attributes)[
+        ['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living']]
+    data_connected = pd.merge(data_filtered, data_additional_attributes, how='inner',
+                              on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living'])
+    data_no_duplicates = data_connected.drop_duplicates(['id'])
+    data_deleted_columns = data_no_duplicates.drop(['id', 'price', 'date'], axis=1)
     cols = [col for col in data_deleted_columns.columns if col not in ['price', 'id']]
-    data_deleted_columns=data_deleted_columns[['sqm_basement', 'sqm_above', 'sqm_lot','sqm_living', 'grade', 'yr_built', 'lat', 'long','all_rooms', 'avg_room_size', 'avg_floor_sq', 'overall', 'zipcode_cat', 'binned_age']]
+    data_deleted_columns = data_deleted_columns[['sqm_basement', 'sqm_above', 'sqm_lot','sqm_living', 'grade',
+                                                 'yr_built', 'lat', 'long', 'all_rooms', 'avg_room_size', 'avg_floor_sq',
+                                                 'overall', 'zipcode_cat', 'binned_age',
 
+                                                 'bathrooms', 'bedrooms', 'condition', 'floors',  'yr_renovated']].reset_index(drop=True)
     scaler = MinMaxScaler()
     data_scaled = scaler.fit_transform(data_deleted_columns[cols])
     with open("scaler.pkl", "wb") as outfile:
         pickle.dump(scaler, outfile)
     return data_scaled
+    # return data_deleted_columns
 
 
-def transform_data_forav_calc(data):
+def transform_data_for_average_calculation(data):
     additional_attributes = add_additional_attributes(data)
     housing_out = additional_attributes[['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living']]
 
@@ -153,38 +137,53 @@ def transform_data_forav_calc(data):
                               on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living'])
     data_no_duplicates = data_connected.drop_duplicates(['id'])
 
+    data_deleted_columns=data_no_duplicates[['sqm_basement', 'sqm_above', 'sqm_lot','sqm_living', 'grade', 'yr_built',
+                                             'lat', 'long','all_rooms', 'avg_room_size', 'avg_floor_sq', 'overall',
+                                             'zipcode_cat', 'binned_age', 'bathrooms', 'bedrooms',
+                                             'condition', 'floors', 'yr_renovated', 'price']]
 
-    cols = [col for col in data_no_duplicates.columns if col not in ['price', 'id']]
-    data_deleted_columns=data_no_duplicates[['sqm_basement', 'sqm_above', 'sqm_lot','sqm_living', 'grade', 'yr_built', 'lat', 'long','all_rooms', 'avg_room_size', 'avg_floor_sq', 'overall', 'zipcode_cat', 'binned_age', 'price']]
+    data_deleted_columns_scale=data_no_duplicates[['sqm_basement', 'sqm_above', 'sqm_lot',
+                                                   'sqm_living', 'grade', 'yr_built', 'lat', 'long',
+                                                   'all_rooms', 'avg_room_size', 'avg_floor_sq', 'overall',
+                                                   'zipcode_cat', 'binned_age','bathrooms', 'bedrooms', 'condition',
+                                                   'floors','yr_renovated']]
 
     scaler = MinMaxScaler()
-    scaler.fit_transform(data_deleted_columns)
+    scaler.fit_transform(data_deleted_columns_scale)
     with open("scalerC.pkl", "wb") as outfile:
         pickle.dump(scaler, outfile)
     return data_deleted_columns
 
 
+
 def get_labels(data):
     data_additional_attributes = add_additional_attributes(data)
-    data_prepared = data_additional_attributes['price']
+    data_filtered = get_rid_of_outliers(data_additional_attributes)[
+        ['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living']]
+    data_connected = pd.merge(data_filtered, data_additional_attributes, how='inner',
+                              on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living'])
+
+    data_no_duplicates = data_connected.drop_duplicates(['id']).reset_index(drop=True)
+    data_prepared = data_no_duplicates['price']
     to_return = data_prepared
     return to_return
 
 
 
 
-# ['fhousing_nloors'] = housing_n['floors'].str[1:-1]
-# housing_n['zipcode'] = housing_n['zipcode'].str[1:-1]
+housing_n['floors'] = housing_n['floors'].str[1:-1]
+housing_n['zipcode'] = housing_n['zipcode'].str[1:-1]
 housing = housing_n.convert_objects(convert_numeric=True)
-housing_out= housing [['sqft_basement', 'sqft_above', 'sqft_lot', 'bedrooms', 'bathrooms', 'sqft_living']]
-
-data_filtered = get_rid_of_outliers(housing_out)
-data_connected = pd.merge(data_filtered, housing, how='inner',
-                          on=['sqft_basement', 'sqft_above', 'sqft_lot', 'bedrooms', 'bathrooms', 'sqft_living'])
-data_no_duplicates = data_connected.drop_duplicates(['id'])
-
-housing= convert_to_sqm(housing)
+# w = housing.loc[housing['price'].isin([1225000])]
+# housing_out = housing[['sqft_basement', 'sqft_above', 'sqft_lot', 'bedrooms', 'bathrooms', 'sqft_living']]
+# housing_filtered = get_rid_of_outliers(housing_out)
+#
+# data_connected = pd.merge(housing_filtered, housing, how='inner',
+#                           on=['sqft_basement', 'sqft_above', 'sqft_lot', 'bedrooms', 'bathrooms', 'sqft_living'])
+# data_no_duplicates = data_connected.drop_duplicates(['id'])
+housing = convert_to_sqm(housing)
 housing = housing.reset_index(drop=True)
+t = housing.loc[housing['price'].isin([1225000])]
 # housing = housing[:-1]
 
 # Creating a price category
@@ -194,7 +193,7 @@ minimum = housing['price'].min()/divider
 housing['price_cat'] = pd.cut(housing['price']/divider, bins= create_bins(maximum, minimum), labels = [1,2,3,4])
 
 # Splitting data in train and test sets
-split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+split = StratifiedShuffleSplit(n_splits=10, test_size=0.2, random_state=42)
 for train_index, test_index in split.split(housing, housing["price_cat"]):
     strat_train_set = housing.loc[train_index]
     strat_test_set = housing.loc[test_index]
@@ -203,10 +202,13 @@ for train_index, test_index in split.split(housing, housing["price_cat"]):
 for set_ in (strat_train_set, strat_test_set):
     set_.drop("price_cat", axis=1, inplace=True)
 
+
+
 housing = strat_train_set.copy()
 housing_labels = get_labels(housing)
-test_X= transform_data(strat_test_set)
-test_y = get_labels(strat_test_set)
+w = strat_test_set.copy()
+test_X= transform_data(w)
+# test_y = get_labels(strat_test_set)
 housing_prepared = transform_data(housing)
 
 
@@ -215,10 +217,10 @@ housing_prepared = transform_data(housing)
 # models:
 
 forest_reg = RandomForestRegressor(n_jobs= -1, min_weight_fraction_leaf=0., n_estimators=100, min_samples_split=16,
-                                   min_samples_leaf=8, min_impurity_decrease=.5, max_depth=50)
+                                   min_samples_leaf=8, min_impurity_decrease=0, max_depth=100)
 
 
-GBoost = GradientBoostingRegressor(n_estimators=3000, learning_rate=0.05,
+GBoost = GradientBoostingRegressor(n_estimators=3000, learning_rate=0.1,
                                    max_depth=4, max_features='sqrt',
                                    min_samples_leaf=15, min_samples_split=10,
                                    loss='huber', random_state =5)
@@ -227,7 +229,7 @@ model_xgb = xgb.XGBRegressor(colsample_bytree=0.4603, gamma=0.0468,
                              min_child_weight=1.7817, n_estimators=2200,
                              reg_alpha=0.4640, reg_lambda=0.8571,
                              subsample=0.5213, silent=1,
-                             random_state =7, nthread = -1)
+                             random_state =7, nthread=-1)
 model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
                               learning_rate=0.05, n_estimators=720,
                               max_bin = 55, bagging_fraction = 0.8,
@@ -236,8 +238,7 @@ model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
                               min_data_in_leaf =6, min_sum_hessian_in_leaf = 11)
 
 
-# #Select and train a model
-#
+
 
 def display_scores(scores, model):
     print(model)
@@ -245,8 +246,6 @@ def display_scores(scores, model):
     print("Mean:", scores.mean())
     print("Standard deviation:", scores.std())
     print('')
-
-
 
 
 def gridSearchCV(X, Y):
@@ -258,6 +257,7 @@ def gridSearchCV(X, Y):
     pip_knn = Pipeline((('clf', KNeighborsRegressor()),))
     pip_lasso = Pipeline((('clf', Lasso()),))
     pip_elastic = Pipeline((('clf', ElasticNet()),))
+    pip_gradient_boost = Pipeline((('clf',GradientBoostingRegressor()),))
 
     parameters1 = {'clf__fit_intercept': [True, False],
                    'clf__normalize': [True, False],
@@ -319,8 +319,17 @@ def gridSearchCV(X, Y):
                     'clf__warm_start':[True, False],
                     'clf__positive': [True, False],
                     'clf__selection': ['cyclic', 'random']}
-    pips = [pip_elastic]
-    pars = [parameters8]
+
+    parameters9 = {'clf__loss': ['ls', 'lad', 'huber', 'quantile'],
+                   'clf__learning_rate': [0.01, 0.1, 1],
+                   'clf__n_estimators': [50, 100, 150],
+                   'clf__subsample': [0.1, 0.5, 1],
+                   'clf__min_samples_split': [2, 4,8],
+                   'clf__min_samples_leaf': [1, 2, 4],
+                   'clf__max_depth':[3, 6, 9, 15],
+                   'clf__alpha': [0.3, 0.5, 0.9]}
+    pips = [pip_gradient_boost]
+    pars = [parameters9]
 
     print("Starting Gridsearch")
     for i in range(len(pars)):
@@ -329,25 +338,23 @@ def gridSearchCV(X, Y):
         print("Best parameters of: ", i.__class__ ," ",gs.best_params_)
 
 
-
-
-
 def checkAllModels(models_list):
     scores_for_plot_train = []
     scores_for_plot_test = []
     for model in models_list:
         model.fit(housing_prepared, housing_labels)
         housing_predictions_train = model.predict(housing_prepared)
-        model.fit(test_X, test_y)
-        housing_predictions_test = model.predict(test_X)
+        # model.fit(test_X, test_y)
+        # housing_predictions_test = model.predict(test_X)
         scores_train = np.sqrt(-cross_val_score(model, housing_prepared, housing_labels,
                                                 scoring="neg_mean_squared_error", cv=10))
-        scores_test = np.sqrt(-cross_val_score(model, test_X, test_y,
-                                                scoring="neg_mean_squared_error", cv=10))
+        # scores_test = np.sqrt(-cross_val_score(model, test_X, test_y,
+        #                                         scoring="neg_mean_squared_error", cv=10))
         scores_for_plot_train.append(scores_train.mean())
-        scores_for_plot_test.append(scores_test.mean())
+        # scores_for_plot_test.append(scores_test.mean())
         display_scores(scores_train, 'Model:'+ model.__class__.__name__)
-        display_scores(scores_test, 'test')
+        # display_scores(scores_test, 'test')
+
 
 def rmsle_cv_(model):
     cv = KFold(n_splits=5, shuffle=True, random_state=42)
@@ -365,45 +372,63 @@ def rmsle_cv_(model):
 #         score = rmsle_cv_(averaged_models)
 #         print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
 
-models = [forest_reg ,GBoost, model_xgb,  model_lgb]
-averaged_models = StackingAveragedModels(base_models=(GBoost, model_xgb,  model_lgb), meta_model =forest_reg)
+
+
+
+
+models = [forest_reg, GBoost, model_xgb,  model_lgb]
+averaged_models = StackingAveragedModels(base_models=(GBoost, model_lgb, model_xgb), meta_model =forest_reg)
 averaged_models.fit(housing_prepared, housing_labels)
+forest_reg.fit(housing_prepared, housing_labels)
 
 score = rmsle_cv_(forest_reg)
 print(" Averaged base models score: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
+list = [[9,91,383,100,7,1919,47.67710,-122.31900,4,25,91,10,1,0,1,3,3]]
+with open("scaler.pkl", "rb") as infile:
+    scaler = pickle.load(infile)
+    scaled = scaler.transform(list)
+    # gridSearchCV(housing_prepared, housing_labels)
+    print("przed")
 
-# gridSearchCV(housing_prepared, housing_labels)
-print("przed")
-forest_reg.fit(housing_prepared, housing_labels)
-# # pickle.dump(averaged_models, open('modelfin.pkl', 'wb'))
-# with open("scaler.pkl", "rb") as infile:
-#     scaler = pickle.load(infile)
-#     scaled = scaler.transform([[0,99,903,99,7,1963,47.40950 ,-122.31500, 4.5, 22, 99, 10,0,1]])
-#     f = forest_reg.predict(scaled)
-#     print(f)
+    forest_reg.fit(housing_prepared, housing_labels)
+    pickle.dump(averaged_models, open('modelfin.pkl', 'wb'))
+    a = averaged_models.predict(scaled)
+    f = forest_reg.predict(scaled)
+    print(a)
+    print(f)
+    print("koniec")
+
 
 def calculate_accurancy():
     houses = strat_test_set.copy()
     houses = houses.convert_objects(convert_numeric=True)
     # houses = convert_to_sqm(houses)
-    houses = transform_data_forav_calc(houses)
-    houses= houses.reset_index()
+    houses = transform_data_for_average_calculation(houses)
+    houses= houses.reset_index(drop=True)
     totaldiff = 0
     totalprice = 0
     for i in range(len(houses)):
         price = houses.loc[i,'price']
         with open("scaler.pkl", "rb") as infile:
             scaler = pickle.load(infile)
-            h = [houses.loc[i,'sqm_basement'],houses.loc[i,'sqm_above'],houses.loc[i,'sqm_lot'],houses.loc[i,'sqm_living'],houses.loc[i,'grade'],houses.loc[i,'yr_built'],houses.loc[i,'lat'],houses.loc[i,'long'],houses.loc[i,'all_rooms'],houses.loc[i,'avg_room_size'],houses.loc[i,'avg_floor_sq'],houses.loc[i,'overall'],houses.loc[i,'zipcode_cat'],houses.loc[i,'binned_age']]
-            z=np.asarray(h).reshape(1, -1)
+            h = [houses.loc[i, 'sqm_basement'], houses.loc[i, 'sqm_above'], houses.loc[i, 'sqm_lot'],
+                 houses.loc[i, 'sqm_living'], houses.loc[i, 'grade'], houses.loc[i, 'yr_built'], houses.loc[i, 'lat'],
+                 houses.loc[i, 'long'], houses.loc[i, 'all_rooms'], houses.loc[i, 'avg_room_size'],
+                 houses.loc[i, 'avg_floor_sq'], houses.loc[i, 'overall'], houses.loc[i, 'zipcode_cat'],
+                 houses.loc[i, 'binned_age'], houses.loc[i, 'bathrooms'], houses.loc[i, 'bedrooms'],
+                 houses.loc[i, 'condition'], houses.loc[i, 'floors'], houses.loc[i, 'yr_renovated']
+                 ]
+            z = np.asarray(h).reshape(1, -1)
             scaled = scaler.transform(z)
-            caclulated_price= averaged_models.predict(scaled)[0]
-            # caclulated_price= forest_reg.predict(scaled)[0]
-            diff= math.fabs(price - caclulated_price)
+            # caclulated_price = averaged_models.predict(scaled)[0]
+            caclulated_price= forest_reg.predict(scaled)[0]
+            diff = math.fabs(price - caclulated_price)
             totaldiff += diff
             totalprice += price
-    x= totaldiff/totalprice
+    x = totaldiff/totalprice
     print(1-x)
-calculate_accurancy()
-# a=averaged_models.predict(scaled)
-# print(a)
+
+
+# calculate_accurancy()
+#
+#
