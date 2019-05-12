@@ -1,4 +1,4 @@
-from dbConnection import connect_to_houses
+from database.dbConnection import connect_to_houses
 import random
 import datetime
 
