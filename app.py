@@ -191,13 +191,13 @@ def predict():
     return render_template('main.html', data=result)
 
 
-# @app.route('/statistics', methods=['GET', 'POST'])
-# @login_required
-# def statistics():
-#     script, div = make_diagrams()
-#     return render_template("statistics.html", the_div=div, the_script=script)
-#
-#
+@app.route('/statistics', methods=['GET', 'POST'])
+@login_required
+def statistics():
+    script, div = make_diagrams()
+    return render_template("statistics.html", the_div=div, the_script=script)
+
+
 if __name__ == '__main__':
 
     app.run()
