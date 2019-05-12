@@ -27,7 +27,7 @@ def prepare_data(sent_data):
     x= x[['sqm_basement', 'sqm_above', 'sqm_lot','sqm_living', 'grade', 'yr_built', 'lat', 'long','all_rooms',
           'avg_room_size', 'avg_floor_sq', 'overall', 'zipcode_cat', 'binned_age']]
     list = np.asarray(x.values.tolist())
-    with open("analysis/scaler.pkl", "rb") as infile:
+    with open("scaler.pkl", "rb") as infile:
         scaler = pickle.load(infile)
         scaled= scaler.transform(list)
     return scaled
