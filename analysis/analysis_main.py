@@ -36,6 +36,7 @@ def create_bins(maximum, minimum):
     for i in range(numberOfBins):
         if i == 0:
             x.append(int((minimum-1 + (difference * i))))
+
         else:
             x.append(int((minimum + (difference * i))))
     x.sort()
