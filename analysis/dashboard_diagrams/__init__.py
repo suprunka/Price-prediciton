@@ -216,6 +216,3 @@ def make_diagrams():
                       create_date_price_count_chart(), create_date_price_sum_chart()], sizing_mode="scale_width")
     script, div = components(tabs)
     return script, div
-
-
-

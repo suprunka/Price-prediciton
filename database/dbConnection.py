@@ -29,8 +29,3 @@ def get_data():
                                                           'sqft_living15': 0, 'sqft_lot15': 0,
                                                           'waterfront': 0, 'view':0})))
     return result
-
-
-
-
-

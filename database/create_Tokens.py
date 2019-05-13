@@ -55,5 +55,3 @@ def give_token(email, number):
             result_ = True
             send_mail(email, msg)
     return result_
-
-

@@ -2,17 +2,13 @@ import pickle
 from flask_cors import CORS
 from flask import Flask, render_template, request, jsonify,redirect
 from database import house as house_db
-from database import dbConnection as db
 from database import manage as account
 import prepare_for_prediction as pred
 from database import create_Tokens as tokens
-import json
-from bson import json_util
 from analysis.dashboard_diagrams import make_diagrams
-from bokeh.embed import components
-from bson.json_util import dumps
-from analysis import averaged_models
-from flask_login import LoginManager, UserMixin, current_user, login_user, login_required, logout_user
+import warnings
+warnings.filterwarnings('ignore')
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 
 with open('modelfin.pkl', 'rb') as f:
     model = pickle.load(f)
