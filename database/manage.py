@@ -1,4 +1,4 @@
-from dbConnection import *
+from database.dbConnection import *
 import hashlib, binascii, os, smtplib
 from bson.objectid import ObjectId
 from threading import Lock
