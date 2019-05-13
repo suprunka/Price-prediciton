@@ -39,6 +39,7 @@ def create_bins(maximum, minimum):
 
         else:
 
+
             x.append(int((minimum + (difference * i))))
     x.sort()
     return x
