@@ -10,7 +10,6 @@ from bson import json_util
 # from analysis.dashboard_diagrams import make_diagrams
 from bokeh.embed import components
 from bson.json_util import dumps
-from analysis import averaged_models
 from flask_login import LoginManager, UserMixin, current_user, login_user, login_required, logout_user
 from analysis.dashboard_diagrams import make_diagrams
 import warnings
