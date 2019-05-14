@@ -56,10 +56,7 @@ def add_additional_attributes(data):
     data.loc[data.all_rooms == 0, 'all_rooms'] = 1
     data['avg_room_size'] = data['sqm_living']/ data['all_rooms']
     data['avg_floor_sq'] = data['sqm_above'] / data['floors']
-    data['overall'] = (data['grade'] + data['condition'])/data['yr_built']
-    # data['lot-and-house'] = data['sqm_lot'] + data['sqm_living']/ data['grade']
-    # data['ko'] = data['sqm_lot']/data['sqm_living']
-
+    data['overall'] = data['grade'] + data['condition']
     x = data[["zipcode", "price"]].groupby(['zipcode'], as_index=False).mean().sort_values(by='price', ascending=False)
     x['zipcode_cat'] = 0
     x['zipcode_cat'] = np.where(x['price'] > 1000000, 3, x['zipcode_cat'])
@@ -221,7 +218,7 @@ def checkAllModels(models_list, alone=False):
 # averaged_models.fit(housing_prepared, housing_labels)
 # forest_reg.fit(housing_prepared, housing_labels)
 # GBoost.fit(housing_prepared,housing_labels)
-# model_xgb.fit(housing_prepared, housing_labels)
+model_xgb.fit(housing_prepared, housing_labels)
 # model_lgb.fit(housing_prepared, housing_labels)
 # br_reg.fit(housing_prepared, housing_labels)
 
@@ -233,7 +230,7 @@ list2= [[0, 94, 728, 94, 6, 1977, 47.7422, -121.98100, 4, 23.5, 94, 0.00506, 1, 
 #     scaler = pickle.load(infile)
 #     scaled = scaler.transform(list)
 #       pickle.dump(averaged_models, open('average_model.pkl', 'wb'))
-# pickle.dump(model_xgb, open('xgb_model.pkl', 'wb'))
+pickle.dump(model_xgb, open('xgb_model.pkl', 'wb'))
 #     # pickle.dumps(forest_reg, open('forest_model.pkl', 'wb'))
 #     a = averaged_models.predict(scaled)
 #     # f = forest_reg.predict(scaled)

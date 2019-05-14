@@ -11,25 +11,16 @@ def get_data_fromdb():
 
 
 def prepare_data(sent_data):
-    valueOfSqM = 10.76
 
-    sent_data['sqm_living'] = round(float(sent_data['sqft_living']) / valueOfSqM)
-    sent_data['sqm_lot'] = round(float(sent_data['sqft_lot']) / valueOfSqM)
-    sent_data['sqm_above'] = round(float(sent_data['sqft_above']) / valueOfSqM)
-    sent_data['sqm_basement'] = round(float(sent_data['sqft_basement']) / valueOfSqM)
 
-    data = pd.DataFrame([sent_data])
+    data = pd.DataFrame(sent_data, index=[0])
     data_additional_attributes = add_additional_attributes(data)
-    data_deleted_columns = data_additional_attributes.drop(['bathrooms', 'yr_renovated',  'bedrooms', 'floors',
-                                                            'condition', 'sqft_above', 'sqft_lot', 'sqft_living',
-                                                            'sqft_basement'], axis=1)
-    x= data_deleted_columns.astype(float)
-    x= x[['sqm_basement', 'sqm_above', 'sqm_lot','sqm_living', 'grade', 'yr_built', 'lat', 'long','all_rooms',
-          'avg_room_size', 'avg_floor_sq', 'overall', 'zipcode_cat', 'binned_age']]
-    list = np.asarray(x.values.tolist())
+    x = data_additional_attributes.astype(float)
+    x = x[['sqm_basement', 'sqm_above', 'sqm_lot', 'sqm_living', 'grade', 'yr_built', 'lat', 'long', 'all_rooms',
+           'avg_room_size', 'avg_floor_sq', 'overall','floors', 'zipcode_cat', 'yr_renovated', 'bathrooms']]
     with open("scaler.pkl", "rb") as infile:
         scaler = pickle.load(infile)
-        scaled= scaler.transform(list)
+        scaled = scaler.transform(x)
     return scaled
 
 

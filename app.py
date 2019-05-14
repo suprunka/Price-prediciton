@@ -5,19 +5,12 @@ from database import house as house_db
 from database import manage as account
 import prepare_for_prediction as pred
 from database import create_Tokens as tokens
-import json
-from bson import json_util
-# from analysis.dashboard_diagrams import make_diagrams
-from bokeh.embed import components
-from bson.json_util import dumps
-from analysis import averaged_models
-from flask_login import LoginManager, UserMixin, current_user, login_user, login_required, logout_user
 from analysis.dashboard_diagrams import make_diagrams
 import warnings
 warnings.filterwarnings('ignore')
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 
-with open('modelfin.pkl', 'rb') as f:
+with open('analysis/xgb_model.pkl', 'rb') as f:
     model = pickle.load(f)
 
 app = Flask(__name__)
@@ -188,10 +181,7 @@ def register_agent():
 def predict():
     form_value = request.form.to_dict()
     data = pred.prepare_data(form_value)
-    ulozonedane = [];
-    x = model.predict(data)
-    result = x[0]
-    return render_template('main.html', data=result)
+    return render_template('main.html', data= model.predict(data))
 
 
 @app.route('/statistics', methods=['GET', 'POST'])
