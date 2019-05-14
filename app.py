@@ -82,6 +82,7 @@ def logout():
     return render_template('main.html')
 
 
+
 @app.route('/agent_view')
 @login_required
 def agent_view():
