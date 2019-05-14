@@ -10,7 +10,7 @@ import warnings
 warnings.filterwarnings('ignore')
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 
-with open('analysis/xgb_model.pkl', 'rb') as f:
+with open('xgb_model.pkl', 'rb') as f:
     model = pickle.load(f)
 
 app = Flask(__name__)
