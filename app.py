@@ -18,11 +18,13 @@ with open('xgb_model.pkl', 'rb') as f:
 
 app = Flask(__name__)
 app.static_folder = 'static'
-f = open('secret.txt', 'r')
 
+f = open('secret.txt', 'r')
 app.config.update(
     SECRET_KEY=f.read()
 )
+
+
 login = LoginManager()
 login.init_app(app)
 
@@ -56,7 +58,7 @@ def load_user(user_id):
 @app.before_first_request
 def init_scheduler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(analysis_main.model_preparation, 'interval', minutes=10, start_date='2019-05-19 17:35:00')
+    scheduler.add_job(analysis_main.model_preparation, 'interval', seconds=15, start_date='2019-05-19 17:35:00')
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
 
@@ -140,7 +142,6 @@ def change_password():
 
 
 @app.route('/reset_password', methods=['GET', 'POST'])
-@login_required
 def reset_password():
     if request.method == 'POST':
         form_value = request.form

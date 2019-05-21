@@ -19,8 +19,6 @@ numberOfBins = 4
 divider = 1000
 def model_preparation():
     housing_n = get_data()
-
-
     housing_n['floors'] = housing_n['floors'].str[1:-1]
     housing_n['zipcode'] = housing_n['zipcode'].str[1:-1]
     housing = housing_n.convert_objects(convert_numeric=True)
