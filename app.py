@@ -54,7 +54,7 @@ def load_user(user_id):
 @app.before_first_request
 def init_scheduler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(analysis_main.model_preparation, 'interval', hours=24, start_date='2019-05-19 23:58:00')
+    scheduler.add_job(analysis_main.model_preparation, 'interval', hours=24, start_date='2019-05-19 16:44:00')
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
 
