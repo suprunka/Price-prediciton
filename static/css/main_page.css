@@ -4,16 +4,20 @@
  }
 #predictions
 {
-background-image:url("../img/balance.jpg");
-background-repeat: repeat;
+
 color: #f2f2f2;
+}
+
+.col-md-3{
 
 
 }
+
 #pred_box
 {
 background-color:black;
-opacity:0.88;
+opacity:1;
+}
 
 h4{
   font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif;
@@ -25,7 +29,6 @@ h4{
 }
 
 #elegantshadow{
-
     color: #131313;
     background-color: #e7e5e4;
     letter-spacing: .15em;
@@ -61,31 +64,30 @@ h4{
       -28px 56px 1px #e4e3e2;
 }
 
-}
+
 form
 {
-
 font-size: 16px;
 line-height: 0;
 word-spacing: 0px;
 }
+
 .rs-range
 {
-
-    max-width: 35vh;
+max-width: 35vh;
 }
-.rs-label {
 
-    position: relative;
-    display: block;
-	height:1vh;
-    background: transparent;
-    text-align: center;
-    font-weight: bold;
-    margin-left: -18px;
-    left: attr(value);
-    font-size: 16px;
-   }
+.rs-label {
+position: relative;
+display: block;
+height:1vh;
+background: transparent;
+text-align: center;
+font-weight: bold;
+margin-left: -18px;
+left: attr(value);
+font-size: 16px;
+}
 
 #predictedPrice
 {
@@ -128,7 +130,7 @@ padding:30px;
 font-size:13px;
 padding:20px;
 }
-  #sendo{
-        max-height: 5vh;
 
-    }
+#sendo{
+max-height: 5vh;
+}
