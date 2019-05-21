@@ -1,18 +1,20 @@
 
 from sklearn.model_selection import KFold, cross_val_score
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import Lasso, Ridge, ElasticNet, RANSACRegressor, SGDRegressor, HuberRegressor, BayesianRidge # Linear models
+from sklearn.linear_model import Lasso, Ridge, ElasticNet, RANSACRegressor, SGDRegressor, HuberRegressor, BayesianRidge, LinearRegression # Linear models
 from sklearn.ensemble import RandomForestRegressor, BaggingRegressor, AdaBoostRegressor, GradientBoostingRegressor, ExtraTreesRegressor  # Ensemble methods
 from xgboost import XGBRegressor, plot_importance # XGBoost
 from sklearn.svm import SVR, SVC, LinearSVC  # Support Vector Regression
 from sklearn.tree import DecisionTreeRegressor # Decision Tree Regression
 from sklearn.neighbors import KNeighborsRegressor
+import lightgbm as lgb
 from sklearn.pipeline import Pipeline # Streaming pipelines
 from sklearn.decomposition import KernelPCA, PCA # Dimensionality reduction
 from sklearn.feature_selection import SelectFromModel # Dimensionality reduction
 from sklearn.model_selection import learning_curve, validation_curve, GridSearchCV # Model evaluation
 from sklearn.base import clone # Clone estimator
 from sklearn.metrics import mean_squared_error as MSE
+
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -27,6 +29,24 @@ def create_pipeline(train_x, train_y, seed=2):
              ("Ridge", Ridge(random_state=seed, tol=10))
          ]))
     )
+
+    pipelines.append(
+        ("LGBNRegressor",
+         Pipeline([
+             ("Scaler", StandardScaler()),
+             ("LGBNRegressor", lgb.LGBMRegressor(random_state=seed))
+         ]))
+
+    )
+
+    pipelines.append(
+        ("Linear Regression",
+         Pipeline([
+             ("Scaler", StandardScaler()),
+             ("Linear Regression", LinearRegression())
+         ]))
+    )
+
     pipelines.append(
         ("Scaled_Lasso",
          Pipeline([

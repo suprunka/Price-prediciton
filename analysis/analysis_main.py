@@ -10,7 +10,7 @@ import xgboost as xgb
 import math
 import lightgbm as lgb
 import warnings
-from analysis.analysis_helpers import averaged_models, models_gridSearch
+from analysis.analysis_helpers import averaged_models, models_gridSearch, different_models_pipeline
 warnings.filterwarnings('ignore')
 from database.dbConnection import get_data
 
@@ -50,8 +50,7 @@ def model_preparation():
     # w = strat_test_set.copy()
     housing_prepared = transform_data(housing)
     housing_labels = get_labels(housing)
-    # test_X = transform_data(w)
-    # test_y = get_labels(w)
+
 
     # Picking most promising models
     forest_reg = RandomForestRegressor(n_jobs=-1, min_weight_fraction_leaf=0., n_estimators=100, min_samples_split=16,
@@ -73,38 +72,11 @@ def model_preparation():
     br_reg = BaggingRegressor(warm_start=False, n_jobs=5, n_estimators=50, bootstrap_features=True,
                               bootstrap=False)
 
-    # models = [forest_reg, GBoost, model_xgb,  model_lgb, br_reg]
-    # averaged_models = averaged_models.StackingAveragedModels(base_models=(model_xgb, br_reg),
-    #                                                          meta_model =forest_reg)
-    # averaged_models.fit(housing_prepared, housing_labels)
-    # forest_reg.fit(housing_prepared, housing_labels)
-    # GBoost.fit(housing_prepared,housing_labels)
+
     model_xgb.fit(housing_prepared, housing_labels)
-
-    # model_lgb.fit(housing_prepared, housing_labels)
-    # br_reg.fit(housing_prepared, housing_labels)
-
-    list1 = [[0, 299, 983, 299, 8, 2006, 47.7268, -121.95700, 7.5, 39.86667, 149.5, 0.00548, 2, 0, 0, 2.5]]
-    list2 = [[0, 94, 728, 94, 6, 1977, 47.7422, -121.98100, 4, 23.5, 94, 0.00506, 1, 0, 0, 1]]
-    # with open("scaler.pkl", "rb") as infile:
-    #     scaler = pickle.load(infile)
-    #     scaled = scaler.transform(list)
-    #       pickle.dump(averaged_models, open('average_model.pkl', 'wb'))
     pickle.dump(model_xgb, open('./xgb_model.pkl', 'wb'))
-    #     # pickle.dumps(forest_reg, open('forest_model.pkl', 'wb'))
-    #     a = averaged_models.predict(scaled)
-    #     # f = forest_reg.predict(scaled)
-    #     # gboost = GBoost.predict(scaled)
-    #     # xgb = model_xgb.predict(scaled)
-    #     # lgb = model_lgb.predict(scaled)
-    #     # br = br_reg.predict(scaled)
-    #     print(a)
-    #     # print(f)
-    #     # print(gboost)
-    #     # print(xgb)
-    #     # print(lgb)
-    #     # print(br)
     print('Prediction model was updated.')
+
 def convert_to_sqm(housing):
     housing['sqm_living'] = round(housing['sqft_living']/valueOfSqM)
     housing['sqm_lot'] = round(housing['sqft_lot']/valueOfSqM)
@@ -119,10 +91,7 @@ def create_bins(maximum, minimum):
     for i in range(numberOfBins):
         if i == 0:
             x.append(int((minimum-1 + (difference * i))))
-
         else:
-
-
             x.append(int((minimum + (difference * i))))
     x.sort()
     return x
@@ -147,17 +116,14 @@ def add_additional_attributes(data):
     x['zipcode_cat'] = np.where(x['price'].between(500000, 750000), 1, x['zipcode_cat'])
     x = x.drop('price', axis=1)
     data = pd.merge(data, x, how='inner',on='zipcode')
-
     data = data.drop('zipcode', axis=1)
     train_set = data.copy()
     train_set['age'] = datetime.date.today().year - train_set['yr_built']
     bins = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200]
     labels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     train_set['binned_age'] = pd.cut(train_set['age'], bins=bins, labels=labels)
-
     y = train_set[["binned_age", "price"]].groupby(["binned_age"], as_index=False).mean().sort_values(by='price',
                                                                                                       ascending=False)
-
     data['binned_age'] = 0
     data['binned_age'] = np.where(train_set['binned_age'].between(4, 9), 1, data['binned_age'])
     return data
@@ -170,7 +136,6 @@ def transform_data(data):
                                                  'yr_built', 'lat', 'long', 'all_rooms', 'avg_room_size', 'avg_floor_sq',
                                                  'overall','floors', 'zipcode_cat', 'yr_renovated',
                                                  'bathrooms']].reset_index(drop=True)
-
     scaler = MinMaxScaler()
     data_scaled = scaler.fit_transform(data_deleted_columns)
     with open("./scaler.pkl", "wb") as outfile:
@@ -178,31 +143,6 @@ def transform_data(data):
     print('Scaler was updated.')
     return data_scaled
 
-def transform_data_for_average_calculation(data):
-    additional_attributes = add_additional_attributes(data)
-    housing_out = additional_attributes[['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living']]
-
-    data_filtered = get_rid_of_outliers(housing_out)
-    data_connected = pd.merge(data_filtered, additional_attributes, how='inner',
-                              on=['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living'])
-    data_no_duplicates = data_connected.drop_duplicates(['id'])
-
-    data_deleted_columns=data_no_duplicates[['sqm_basement', 'sqm_above', 'sqm_lot','sqm_living', 'grade', 'yr_built',
-                                             'lat', 'long','all_rooms', 'avg_room_size', 'avg_floor_sq', 'overall',
-                                             'zipcode_cat', 'binned_age', 'bathrooms', 'bedrooms',
-                                             'condition',  'price']]
-
-    data_deleted_columns_scale=additional_attributes[['sqm_basement', 'sqm_above', 'sqm_lot',
-                                                   'sqm_living', 'grade', 'yr_built', 'lat', 'long',
-                                                   'all_rooms', 'avg_room_size', 'avg_floor_sq', 'overall',
-                                                   'zipcode_cat', 'binned_age','bathrooms', 'bedrooms', 'condition',
-                                                   ]]
-
-    # scaler = Normalizer()
-    # scaler.fit_transform(data_deleted_columns_scale)
-    # with open("scalerC.pkl", "wb") as outfile:
-    #     pickle.dump(scaler, outfile)
-    return data_deleted_columns
 
 def get_labels(data):
     data_additional_attributes = add_additional_attributes(data)
@@ -219,6 +159,8 @@ def display_scores(scores, model):
     print('')
 
 def checkAllModels(models_list, alone=False):
+    # test_X = transform_data(w)
+    # test_y = get_labels(w)
     scores_for_plot_test = []
     if not alone:
         for model in models_list:
@@ -233,37 +175,6 @@ def checkAllModels(models_list, alone=False):
         display_scores(r2_score(test_y, models_list.predict(test_X)), models_list.__class__.__name__)
         print("Mean absolute error")
         display_scores(mean_absolute_error(test_y, models_list.predict(test_X)), models_list.__class__.__name__)
-
-def calculate_accurancy():
-    houses = strat_test_set.copy()
-    houses = houses.convert_objects(convert_numeric=True)
-    houses = transform_data_for_average_calculation(houses)
-    houses = houses.reset_index(drop=True)
-    totaldiff = 0
-    totalprice = 0
-    for i in range(len(houses)):
-        price = houses.loc[i,'price']
-        with open("../scalerC.pkl", "rb") as infile:
-            scaler = pickle.load(infile)
-            h = [houses.loc[i, 'sqm_basement'], houses.loc[i, 'sqm_above'], houses.loc[i, 'sqm_lot'],
-                 houses.loc[i, 'sqm_living'], houses.loc[i, 'grade'], houses.loc[i, 'yr_built'], houses.loc[i, 'lat'],
-                 houses.loc[i, 'long'], houses.loc[i, 'all_rooms'], houses.loc[i, 'avg_room_size'],
-                 houses.loc[i, 'avg_floor_sq'], houses.loc[i, 'overall'], houses.loc[i, 'zipcode_cat'],
-                 houses.loc[i, 'binned_age'], houses.loc[i, 'bathrooms'], houses.loc[i, 'bedrooms'],
-                 houses.loc[i, 'condition']
-            ]
-            z = np.asarray(h).reshape(1, -1)
-            scaled = scaler.transform(z)
-            caclulated_price = model_xgb.predict(scaled)[0]
-            # caclulated_price = averaged_models.predict(scaled)[0]
-            # caclulated_price= forest_reg.predict(scaled)[0]
-            diff = math.fabs(price - caclulated_price)
-            totaldiff += diff
-            totalprice += price
-    x = totaldiff/totalprice
-    print(1-x)
-
-
 
 
 #Check models
@@ -287,3 +198,4 @@ def calculate_accurancy():
 #          print(model.predict(scaled1))
 #          print(model.predict(scaled2))
 
+model_preparation()

@@ -1,5 +1,5 @@
 import pickle
-import os
+
 import atexit
 from flask import Flask, render_template, request, jsonify,redirect
 from database import house as house_db
@@ -12,17 +12,14 @@ from analysis import analysis_main
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 from apscheduler.schedulers.background import BackgroundScheduler
 
+
+
 with open('xgb_model.pkl', 'rb') as f:
     model = pickle.load(f)
 
 app = Flask(__name__)
 app.static_folder = 'static'
-app.config.update(
-    SECRET_KEY='sdf'
-)
-
 login = LoginManager()
-
 login.init_app(app)
 
 
