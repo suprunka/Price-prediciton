@@ -54,7 +54,7 @@ def load_user(user_id):
 @app.before_first_request
 def init_scheduler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(analysis_main.model_preparation, 'interval', hours=24, start_date='2019-05-19 14:28:00')
+    scheduler.add_job(analysis_main.model_preparation, 'interval', hours=24, start_date='2019-05-19 23:58:00')
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
 
@@ -73,6 +73,7 @@ def main():
 @app.route('/login', methods=["GET", "POST"])
 def login():
     if request.method == 'POST':
+        form = request.form
         email = request.form['email']
         password = request.form['password']
         if account.log_in(email, password) is True:
