@@ -19,7 +19,8 @@ with open('xgb_model.pkl', 'rb') as f:
 
 app = Flask(__name__)
 app.static_folder = 'static'
-f = open('secret.txt', 'r')
+f = open('secret', 'r')
+
 app.config.update(
     SECRET_KEY=f.read()
 )
