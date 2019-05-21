@@ -10,7 +10,7 @@ import xgboost as xgb
 import math
 import lightgbm as lgb
 import warnings
-from analysis_helpers import averaged_models, models_gridSearch
+from analysis.analysis_helpers import averaged_models, models_gridSearch
 warnings.filterwarnings('ignore')
 from database.dbConnection import get_data
 
