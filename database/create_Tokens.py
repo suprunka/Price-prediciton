@@ -8,21 +8,21 @@ lock = Lock()
 
 def insert_1000_tokens():
     _result = False
-    the_list = []
     existing_list = get_existing_tokens()
+    the_list = []
     for i in range(1000):
         number = round(random.randint(1, 600000) * datetime.datetime.now().microsecond+0.121/55 / 0.02)
         if not any(d['token'] == number for d in the_list) and number not in existing_list:
             the_list.append({'token': number, 'isUsed': False})
             _result = True
         else:
-            #then retry to add tokens
-            _result= False
+            _result = False
             break
     if _result is True:
         connect_to_tokens().insert_many(the_list)
+    else:
+        insert_1000_tokens()
     return _result
-
 
 
 def get_existing_tokens():

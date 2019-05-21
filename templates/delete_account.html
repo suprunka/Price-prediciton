@@ -1,23 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <title>Houses prediction website</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+,<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
 {% extends "layout.html" %}
-
       {% block content %}
-
-		<form id="form_content" action="/register_agent" method="post">
-			<h1 >Registration </h1>
+	<section >
+		<form id="form_content" action="/delete_account" method="post">
+			<h1 >Delete account </h1>
 			{{ result }}
 			<p></p>
 			<input type="text" placeholder="Mail" required name="email" id="mail" />
@@ -28,10 +23,10 @@
 			<p><div id="divCheckPasswordMatch"></div></p>
 			<input type="text" placeholder="Token" required  name="token" id="token" />
 			<p></p>
-			<input type="submit" id="sub_btn" class="btn btn-outline-info" value="Register"/>
+			<input type="submit" id="sub_btn" class="btn btn-outline-info" value="Delete account"/>
 			<p></p>
 		</form>
-		
+	</section>
 
 <script type="text/javascript">
     function checkPasswordMatch() {
@@ -59,6 +54,6 @@ $(document).ready(function () {
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+      {% endblock %}
 
-{%endblock%}
 </html>

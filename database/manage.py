@@ -1,17 +1,16 @@
 from database.dbConnection import *
 import hashlib, binascii, os, smtplib
 from bson.objectid import ObjectId
-from threading import Lock
 import string
 import random
-lock = Lock()
 
 
 def register(email, password, token):
     the_result = True
     the_token = connect_to_tokens().find_one({'token': int(token)})
     if the_token is not None:
-        result = connect_to_users().insert_one({'email': email, 'token': the_token, 'password': hash_password(password),
+        result = connect_to_users().insert_one({'email': email, 'token': the_token,
+                                                'password': hash_password(password),
                                                 'is_admin': False})
         if result is None:
             the_result = False
@@ -29,14 +28,6 @@ def get_user_by_mail(email):
 def get_user_by_id(_id):
     found = connect_to_users().find_one({'token._id': ObjectId(_id)})
     return found
-
-
-def log_in(email, password):
-    try:
-        stored = connect_to_users().find_one({'email': email})['password']
-        return check_password(password, stored)
-    except TypeError:
-        return False
 
 
 def change_password(email, token, new_password):
@@ -91,6 +82,14 @@ def hash_password(password):
     return (salt+pwdhash).decode('ascii')
 
 
+def log_in(email, password):
+    try:
+        stored = connect_to_users().find_one({'email': email})['password']
+        return check_password(password, stored)
+    except TypeError:
+        return False
+
+
 def check_password(password, stored):
     salt = stored[:64]
     stored_pass = stored[64:]
@@ -101,8 +100,14 @@ def check_password(password, stored):
 
 
 def delete_account(token, password, email):
-    result = connect_to_users().delete_one({'token': token, 'password': hash_password(password), 'email': email})
-    if result.deleted_count == 1:
-        connect_to_tokens().update_one(connect_to_tokens().find_one({'token': token}), {"$set": {'isUsed': False}})
-        msg = 'Your account has been deleted'
-        send_mail(email, msg)
+    if log_in(email, password) is True:
+        result = connect_to_users().delete_one({'token.token': int(token), 'email': email})
+        if result.deleted_count == 1:
+            connect_to_tokens().update_one({'token': int(token)}, {"$set": {'isUsed': False}})
+            msg = 'Your account has been deleted'
+            send_mail(email, msg)
+            return True
+        else:
+            return False
+    else:
+        return False

@@ -1,26 +1,21 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from database import dbConnection
 
 
-valueOfSqM = 10.76
 
 
-housing = pd.read_csv(r'house.csv')
 
+housing = dbConnection.get_data()
+housing = housing.convert_objects(convert_numeric=True)
 
-housing = housing.drop(["sqft_living15", "sqft_lot15", 'date', 'waterfront'], axis=1)
-housing['sqm_living'] = round(housing['sqft_living']/valueOfSqM)
-housing['sqm_lot'] = round(housing['sqft_lot']/valueOfSqM)
-housing['sqm_above'] = round(housing['sqft_above']/valueOfSqM)
-housing['sqm_basement'] = round(housing['sqft_basement']/valueOfSqM)
-housing = housing.drop(["sqft_living", "sqft_lot", "sqft_above", "sqft_basement"], axis=1)
 
 
 #Getting rid of outliers
 def get_rid_of_outliers(num_data):
-    Q1 = num_data.quantile(0.25)
-    Q3 = num_data.quantile(0.75)
+    Q1 = num_data.quantile(0.1)
+    Q3 = num_data.quantile(0.9)
     IQR = Q3 - Q1
     return num_data[~((num_data < (Q1 - 1.5 * IQR)) |(num_data > (Q3 + 1.5 * IQR))).any(axis=1)]
 
@@ -126,13 +121,13 @@ def get_rid_of_outliers(num_data):
 # plt.show()
 # plt.title("Square meters living/Price")
 #
-# sns.boxplot(x=housing['sqm_lot'])
+# sns.boxplot(x=housing['sqft_lot'])
 # fig, ax = plt.subplots(figsize=(16,8))
-# ax.scatter(housing['sqm_lot'], housing['price'])
-# ax.set_xlabel('Square meters of lot of the house')
+# ax.scatter(housing['sqft_lot'], housing['price'])
+# ax.set_xlabel('Square feets of lot of the house')
 # ax.set_ylabel('House price')
 # plt.show()
-# plt.title("Square meters lot/Price")
+# plt.title("Square feets lot/Price")
 #
 # sns.boxplot(x=housing['sqm_above'])
 # fig, ax = plt.subplots(figsize=(16,8))
@@ -142,14 +137,14 @@ def get_rid_of_outliers(num_data):
 # plt.show()
 # plt.title("Square meters above/Price")
 #
-sns.boxplot(x=housing['sqm_basement'])
-fig, ax = plt.subplots(figsize=(16,8))
-ax.scatter(housing['sqm_basement'], housing['price'])
-ax.set_xlabel('Square meters of basement of the house')
-ax.set_ylabel('House price')
-plt.show()
-plt.title("Square meters basement/Price")
-
+# sns.boxplot(x=housing['sqm_basement'])
+# fig, ax = plt.subplots(figsize=(16,8))
+# ax.scatter(housing['sqm_basement'], housing['price'])
+# ax.set_xlabel('Square meters of basement of the house')
+# ax.set_ylabel('House price')
+# plt.show()
+# plt.title("Square meters basement/Price")
+#
 data_filtered = get_rid_of_outliers(housing)
 
 # sns.boxplot(x=data_filtered['bedrooms'])
@@ -254,13 +249,13 @@ data_filtered = get_rid_of_outliers(housing)
 # plt.show()
 # plt.title("Square meters living/Price")
 #
-# sns.boxplot(x=data_filtered['sqm_lot'])
-# fig, ax = plt.subplots(figsize=(16,8))
-# ax.scatter(data_filtered['sqm_lot'], data_filtered['price'])
-# ax.set_xlabel('Square meters of lot of the house')
-# ax.set_ylabel('House price')
-# plt.show()
-# plt.title("Square meters lot/Price")
+sns.boxplot(x=data_filtered['sqft_lot'])
+fig, ax = plt.subplots(figsize=(16,8))
+ax.scatter(data_filtered['sqft_lot'], data_filtered['price'])
+ax.set_xlabel('Square feets of lot of the house')
+ax.set_ylabel('House price')
+plt.show()
+plt.title("Square feets lot/Price")
 #
 # sns.boxplot(x=data_filtered['sqm_above'])
 # fig, ax = plt.subplots(figsize=(16,8))

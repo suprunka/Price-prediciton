@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     {% extends "layout.html" %}
@@ -24,7 +25,15 @@
                 <p></p>
                 <input type="submit" id="sub_btn" class="btn btn-outline-info" value="Send token"/>
                 <p></p>
-            </form>
+                </form>
+                <label> Number of left tokens: </label>
+                <label >{{ tokens }}</label>
+                <p></p>
+                <form action="/add_tokens" method="post">
+                    {% if tokens < 100 %} <input type="submit" id="sub_btn2" class="btn btn-outline-info"
+                                            value="Add 1000 tokens"/>
+                    {% endif %}
+                </form>
         </section>
         <script type="text/javascript"></script>
         <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-core.js"></script>

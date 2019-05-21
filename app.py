@@ -1,34 +1,35 @@
 import pickle
-from flask_cors import CORS
+import os
+import atexit
 from flask import Flask, render_template, request, jsonify,redirect
 from database import house as house_db
 from database import manage as account
+from database import dbConnection as conn
 import prepare_for_prediction as pred
 from database import create_Tokens as tokens
-from analysis.dashboard_diagrams import make_diagrams
-import warnings
-warnings.filterwarnings('ignore')
+from analysis.dashboard_diagrams import diagrams
+from analysis import analysis_main
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
+from apscheduler.schedulers.background import BackgroundScheduler
 
 with open('xgb_model.pkl', 'rb') as f:
     model = pickle.load(f)
 
 app = Flask(__name__)
-cors = CORS(app)
 app.static_folder = 'static'
-login = LoginManager(app)
-login.init_app(app)
-
 app.config.update(
-    SECRET_KEY='secret_key_iksde'
+    SECRET_KEY=os.urandom(16)
 )
 
+login = LoginManager()
+login.init_app(app)
 
 
 
 @login.unauthorized_handler
 def unauthorized():
-    return render_template('login.html', result='Login first to access this page.')
+    return render_template('login.html',
+                           result='Login first to access this page.')
 
 
 class User(UserMixin):
@@ -50,9 +51,18 @@ def load_user(user_id):
     return User(user_id)
 
 
+@app.before_first_request
+def init_scheduler():
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(analysis_main.model_preparation, 'interval', hours=24, start_date='2019-05-19 14:28:00')
+    scheduler.start()
+    atexit.register(lambda: scheduler.shutdown())
+
+
 @app.route('/')
-def hello_world():
-    return render_template('main.html')
+def main2():
+   return render_template('main.html')
+
 
 
 @app.route('/main')
@@ -117,13 +127,13 @@ def change_password():
                     logout_user()
                     return render_template('login.html', result="Use new password to log in.")
                 else:
-                    return render_template('forgot_password.html', result='The token is incorrect.')
+                    return render_template('change_password.html', result='The token is incorrect.')
             else:
-                return render_template('forgot_password.html', result="Can't change password for the same.")
+                return render_template('change_password.html', result="Can't change password for the same.")
         else:
-            return render_template('forgot_password.html', result='Passwords are not the same.')
+            return render_template('change_password.html', result='Passwords are not the same.')
     else:
-        return render_template('forgot_password.html')
+        return render_template('change_password.html')
 
 
 @app.route('/reset_password', methods=['GET', 'POST'])
@@ -144,6 +154,7 @@ def reset_password():
 
 
 @app.route('/send_token', methods=['GET', 'POST'])
+@login_required
 def send_token():
     if request.method == 'POST':
         form_value = request.form
@@ -155,9 +166,20 @@ def send_token():
                                    message="You have successfully sent the token.")
         else:
             return render_template('send_token.html', token=tokens.get_token(),
-                                   message="The email is already registered.")
+                                   message="The email is already registered or the token is incorrect.")
     else:
-        return render_template('send_token.html', token=tokens.get_token())
+        number_ = conn.connect_to_tokens().count({"isUsed": False})
+        return render_template('send_token.html', token=tokens.get_token(), tokens=number_)
+
+
+@app.route('/add_tokens', methods=['POST'])
+@login_required
+def add_tokens():
+    result = tokens.insert_1000_tokens()
+    if result is True:
+        return redirect(send_token)
+    else:
+        add_tokens()
 
 
 @app.route('/register_agent', methods=['GET', 'POST'])
@@ -182,15 +204,39 @@ def register_agent():
 def predict():
     form_value = request.form.to_dict()
     data = pred.prepare_data(form_value)
-    return render_template('main.html', data= model.predict(data))
+    return render_template('main.html', data=model.predict(data))
+
+
+@app.route('/delete_account', methods=['GET', 'POST'])
+@login_required
+def delete_account():
+    if request.method == 'POST':
+        form_value = request.form
+        mail = form_value["email"]
+        password = form_value["password"]
+        password2 = form_value["passwordCon"]
+        token = form_value["token"]
+        if password == password2:
+                result_ = account.delete_account(token, password, mail)
+                if result_ is True:
+                    logout_user()
+                    return render_template('login.html',
+                                           result="Your account has been deleted")
+                else:
+                    return render_template('delete_account.html', result="An error while deleting you account")
+        else:
+            return render_template('delete_account.html', result= "Passwords are not the same")
+
+    return render_template('delete_account.html')
 
 
 @app.route('/statistics', methods=['GET', 'POST'])
 @login_required
 def statistics():
-    script, div = make_diagrams()
+    script, div = diagrams.make_diagrams()
     return render_template("statistics.html", the_div=div, the_script=script)
 
 
 if __name__ == '__main__':
     app.run()
+

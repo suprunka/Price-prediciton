@@ -11,8 +11,6 @@ def get_data_fromdb():
 
 
 def prepare_data(sent_data):
-
-
     data = pd.DataFrame(sent_data, index=[0])
     data_additional_attributes = add_additional_attributes(data)
     x = data_additional_attributes.astype(float)

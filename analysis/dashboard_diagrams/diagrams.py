@@ -23,7 +23,8 @@ def get_y(lon, lat):
     r_major = 6378137.000
     x = r_major * math.radians(lon)
     scale = x / lon
-    y = 180.0 / math.pi * math.log(math.tan(math.pi / 4.0 + lat * (math.pi / 180.0) / 2.0)) * scale
+    y = 180.0 / math.pi * math.log(math.tan(math.pi /
+                                            4.0 + lat * (math.pi / 180.0) / 2.0)) * scale
     return y
 
 
@@ -127,10 +128,8 @@ def create_square_meters_chart():
         ('Average square meters basement', [l2]),
         ('Average square meters above', [l3]),
         ('Average square meters living', [l4])], location='center')
-
     legend.click_policy = 'hide'
     p4.add_layout(legend, 'right')
-
     layout_ = column(p4)
     tab4 = Panel(child=layout_, title='Floors and square area')
     return tab4
@@ -153,6 +152,7 @@ def create_zip_code_chart():
     p5.y_range.start = 0
     tab5 = Panel(child=p5, title='Most expensive neighbourhoods')
     return tab5
+
 
 def create_renovated_chart():
     group_by_renovated = housing[['yr_renovated', 'price']].groupby(['yr_renovated']).count()

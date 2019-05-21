@@ -14,13 +14,97 @@ from analysis_helpers import averaged_models, models_gridSearch
 warnings.filterwarnings('ignore')
 from database.dbConnection import get_data
 
-
-
-housing_n =get_data()
 valueOfSqM = 10.76
 numberOfBins = 4
 divider = 1000
 
+def model_preparation():
+    housing_n = get_data()
+
+
+    housing_n['floors'] = housing_n['floors'].str[1:-1]
+    housing_n['zipcode'] = housing_n['zipcode'].str[1:-1]
+    housing = housing_n.convert_objects(convert_numeric=True)
+    housing_out = housing[['price', 'sqft_lot', 'sqft_living', 'bathrooms']]
+    housing_filtered = get_rid_of_outliers(housing_out)
+    data_connected = pd.merge(housing_filtered, housing, how='inner',
+
+                              on=['price', 'sqft_lot', 'sqft_living', 'bathrooms'])
+    data_no_duplicates = data_connected.drop_duplicates(['id'])
+    housing = convert_to_sqm(data_no_duplicates)
+    housing = housing.rename(index=str, columns={'price_x': 'price'})  #
+    housing = housing.reset_index(drop=True)
+    maximum = housing['price'].max() / divider
+    minimum = housing['price'].min() / divider
+    housing['price_cat'] = pd.cut(housing['price'] / divider, bins=create_bins(maximum, minimum), labels=[1, 2, 3, 4])
+
+    split = StratifiedShuffleSplit(n_splits=100, test_size=0.2, random_state=42)
+    for train_index, test_index in split.split(housing, housing["price_cat"]):
+        strat_train_set = housing.loc[train_index]
+        strat_test_set = housing.loc[test_index]
+
+    # Deleting price_category from train and test sets
+    for set_ in (strat_train_set, strat_test_set):
+        set_.drop("price_cat", axis=1, inplace=True)
+
+    housing = strat_train_set.copy()
+    # w = strat_test_set.copy()
+    housing_prepared = transform_data(housing)
+    housing_labels = get_labels(housing)
+    # test_X = transform_data(w)
+    # test_y = get_labels(w)
+
+    # Picking most promising models
+    forest_reg = RandomForestRegressor(n_jobs=-1, min_weight_fraction_leaf=0., n_estimators=100, min_samples_split=16,
+                                       min_samples_leaf=8, min_impurity_decrease=0, max_depth=100)
+
+    GBoost = GradientBoostingRegressor(n_estimators=3000, learning_rate=0.1,
+                                       max_depth=4, max_features='sqrt',
+                                       min_samples_leaf=15, min_samples_split=10,
+                                       loss='huber', random_state=5)
+    model_xgb = xgb.XGBRegressor()
+
+    model_lgb = lgb.LGBMRegressor(objective='regression', num_leaves=5,
+                                  learning_rate=0.05, n_estimators=720,
+                                  max_bin=55, bagging_fraction=0.8,
+                                  bagging_freq=5, feature_fraction=0.2319,
+                                  feature_fraction_seed=9, bagging_seed=9,
+                                  min_data_in_leaf=6, min_sum_hessian_in_leaf=11)
+
+    br_reg = BaggingRegressor(warm_start=False, n_jobs=5, n_estimators=50, bootstrap_features=True,
+                              bootstrap=False)
+
+    # models = [forest_reg, GBoost, model_xgb,  model_lgb, br_reg]
+    # averaged_models = averaged_models.StackingAveragedModels(base_models=(model_xgb, br_reg),
+    #                                                          meta_model =forest_reg)
+    # averaged_models.fit(housing_prepared, housing_labels)
+    # forest_reg.fit(housing_prepared, housing_labels)
+    # GBoost.fit(housing_prepared,housing_labels)
+    model_xgb.fit(housing_prepared, housing_labels)
+    print('gitara Siema zrobiło się')
+    # model_lgb.fit(housing_prepared, housing_labels)
+    # br_reg.fit(housing_prepared, housing_labels)
+
+    list1 = [[0, 299, 983, 299, 8, 2006, 47.7268, -121.95700, 7.5, 39.86667, 149.5, 0.00548, 2, 0, 0, 2.5]]
+    list2 = [[0, 94, 728, 94, 6, 1977, 47.7422, -121.98100, 4, 23.5, 94, 0.00506, 1, 0, 0, 1]]
+    # with open("scaler.pkl", "rb") as infile:
+    #     scaler = pickle.load(infile)
+    #     scaled = scaler.transform(list)
+    #       pickle.dump(averaged_models, open('average_model.pkl', 'wb'))
+    pickle.dump(model_xgb, open('xgb_model.pkl', 'wb'))
+    #     # pickle.dumps(forest_reg, open('forest_model.pkl', 'wb'))
+    #     a = averaged_models.predict(scaled)
+    #     # f = forest_reg.predict(scaled)
+    #     # gboost = GBoost.predict(scaled)
+    #     # xgb = model_xgb.predict(scaled)
+    #     # lgb = model_lgb.predict(scaled)
+    #     # br = br_reg.predict(scaled)
+    #     print(a)
+    #     # print(f)
+    #     # print(gboost)
+    #     # print(xgb)
+    #     # print(lgb)
+    #     # print(br)
 
 def convert_to_sqm(housing):
     housing['sqm_living'] = round(housing['sqft_living']/valueOfSqM)
@@ -94,8 +178,6 @@ def transform_data(data):
         pickle.dump(scaler, outfile)
     return data_scaled
 
-
-
 def transform_data_for_average_calculation(data):
     additional_attributes = add_additional_attributes(data)
     housing_out = additional_attributes[['sqm_basement', 'sqm_above', 'sqm_lot', 'bedrooms', 'bathrooms', 'sqm_living']]
@@ -122,68 +204,11 @@ def transform_data_for_average_calculation(data):
     #     pickle.dump(scaler, outfile)
     return data_deleted_columns
 
-
-
 def get_labels(data):
     data_additional_attributes = add_additional_attributes(data)
     data_prepared = data_additional_attributes['price']
     to_return = data_prepared
     return to_return
-
-
-housing_n['floors'] = housing_n['floors'].str[1:-1]
-housing_n['zipcode'] = housing_n['zipcode'].str[1:-1]
-housing = housing_n.convert_objects(convert_numeric=True)
-housing_out = housing[['price','sqft_lot', 'sqft_living','bathrooms']]
-housing_filtered = get_rid_of_outliers(housing_out)
-data_connected = pd.merge(housing_filtered, housing, how='inner',
-                          on=['price','sqft_lot', 'sqft_living', 'bathrooms'])
-data_no_duplicates = data_connected.drop_duplicates(['id'])
-housing = convert_to_sqm(data_no_duplicates)
-housing = housing.rename(index=str, columns={'price_x': 'price'}) #
-housing = housing.reset_index(drop=True)
-maximum = housing['price'].max()/divider
-minimum = housing['price'].min()/divider
-housing['price_cat'] = pd.cut(housing['price']/divider, bins=create_bins(maximum, minimum), labels=[1, 2, 3, 4])
-
-
-split = StratifiedShuffleSplit(n_splits=100, test_size=0.2, random_state=42)
-for train_index, test_index in split.split(housing, housing["price_cat"]):
-    strat_train_set = housing.loc[train_index]
-    strat_test_set = housing.loc[test_index]
-
-# Deleting price_category from train and test sets
-for set_ in (strat_train_set, strat_test_set):
-    set_.drop("price_cat", axis=1, inplace=True)
-
-housing = strat_train_set.copy()
-# w = strat_test_set.copy()
-housing_prepared = transform_data(housing)
-housing_labels = get_labels(housing)
-# test_X = transform_data(w)
-# test_y = get_labels(w)
-
-
-#Picking most promising models
-forest_reg = RandomForestRegressor(n_jobs= -1, min_weight_fraction_leaf=0., n_estimators=100, min_samples_split=16,
-                                   min_samples_leaf=8, min_impurity_decrease=0, max_depth=100)
-
-GBoost = GradientBoostingRegressor(n_estimators=3000, learning_rate=0.1,
-                                   max_depth=4, max_features='sqrt',
-                                   min_samples_leaf=15, min_samples_split=10,
-                                   loss='huber', random_state =5)
-model_xgb = xgb.XGBRegressor()
-
-
-model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
-                              learning_rate=0.05, n_estimators=720,
-                              max_bin = 55, bagging_fraction = 0.8,
-                              bagging_freq = 5, feature_fraction = 0.2319,
-                              feature_fraction_seed=9, bagging_seed=9,
-                              min_data_in_leaf =6, min_sum_hessian_in_leaf = 11)
-
-br_reg = BaggingRegressor(warm_start=False, n_jobs=5, n_estimators=50, bootstrap_features=True,
-                          bootstrap=False)
 
 
 def display_scores(scores, model):
@@ -192,7 +217,6 @@ def display_scores(scores, model):
     print("Mean:", scores.mean())
     print("Standard deviation:", scores.std())
     print('')
-
 
 def checkAllModels(models_list, alone=False):
     scores_for_plot_test = []
@@ -209,41 +233,6 @@ def checkAllModels(models_list, alone=False):
         display_scores(r2_score(test_y, models_list.predict(test_X)), models_list.__class__.__name__)
         print("Mean absolute error")
         display_scores(mean_absolute_error(test_y, models_list.predict(test_X)), models_list.__class__.__name__)
-
-
-
-# models = [forest_reg, GBoost, model_xgb,  model_lgb, br_reg]
-# averaged_models = averaged_models.StackingAveragedModels(base_models=(model_xgb, br_reg),
-#                                                          meta_model =forest_reg)
-# averaged_models.fit(housing_prepared, housing_labels)
-# forest_reg.fit(housing_prepared, housing_labels)
-# GBoost.fit(housing_prepared,housing_labels)
-model_xgb.fit(housing_prepared, housing_labels)
-# model_lgb.fit(housing_prepared, housing_labels)
-# br_reg.fit(housing_prepared, housing_labels)
-
-
-
-list1= [[0, 299, 983, 299, 8, 2006, 47.7268, -121.95700, 7.5, 39.86667, 149.5, 0.00548, 2, 0, 0, 2.5 ]]
-list2= [[0, 94, 728, 94, 6, 1977, 47.7422, -121.98100, 4, 23.5, 94, 0.00506, 1, 0, 0, 1 ]]
-# with open("scaler.pkl", "rb") as infile:
-#     scaler = pickle.load(infile)
-#     scaled = scaler.transform(list)
-#       pickle.dump(averaged_models, open('average_model.pkl', 'wb'))
-pickle.dump(model_xgb, open('xgb_model.pkl', 'wb'))
-#     # pickle.dumps(forest_reg, open('forest_model.pkl', 'wb'))
-#     a = averaged_models.predict(scaled)
-#     # f = forest_reg.predict(scaled)
-#     # gboost = GBoost.predict(scaled)
-#     # xgb = model_xgb.predict(scaled)
-#     # lgb = model_lgb.predict(scaled)
-#     # br = br_reg.predict(scaled)
-#     print(a)
-#     # print(f)
-#     # print(gboost)
-#     # print(xgb)
-#     # print(lgb)
-#     # print(br)
 
 def calculate_accurancy():
     houses = strat_test_set.copy()
@@ -288,13 +277,13 @@ def calculate_accurancy():
 # models_gridSearch.gridSearchCV(housing_prepared, housing_labels)
 
 
-with open("scaler.pkl", "rb") as infile:
-    scaler = pickle.load(infile)
-    scaled1 = scaler.transform(list1)
-    scaled2 = scaler.transform(list2)
-    # print(cross_val_score(model_xgb, scaled, test_y).mean() * 100)
-    with open("xgb_model.pkl", "rb") as model__:
-         model = pickle.load(model__)
-         print(model.predict(scaled1))
-         print(model.predict(scaled2))
+# with open("scaler.pkl", "rb") as infile:
+#     scaler = pickle.load(infile)
+#     scaled1 = scaler.transform(list1)
+#     scaled2 = scaler.transform(list2)
+#     # print(cross_val_score(model_xgb, scaled, test_y).mean() * 100)
+#     with open("xgb_model.pkl", "rb") as model__:
+#          model = pickle.load(model__)
+#          print(model.predict(scaled1))
+#          print(model.predict(scaled2))
 
