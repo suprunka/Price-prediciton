@@ -18,7 +18,7 @@ with open('xgb_model.pkl', 'rb') as f:
 app = Flask(__name__)
 app.static_folder = 'static'
 app.config.update(
-    SECRET_KEY=os.urandom(16)
+    SECRET_KEY='sdf'
 )
 
 login = LoginManager()
