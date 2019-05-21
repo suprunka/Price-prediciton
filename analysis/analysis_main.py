@@ -197,5 +197,3 @@ def checkAllModels(models_list, alone=False):
 #          model = pickle.load(model__)
 #          print(model.predict(scaled1))
 #          print(model.predict(scaled2))
-
-model_preparation()
