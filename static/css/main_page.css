@@ -13,6 +13,8 @@ color: #f2f2f2;
 
 }
 
+
+
 #pred_box
 {
 background-color:black;
@@ -68,7 +70,6 @@ h4{
 form
 {
 font-size: 16px;
-line-height: 0;
 word-spacing: 0px;
 }
 
@@ -129,8 +130,4 @@ padding:30px;
 {
 font-size:13px;
 padding:20px;
-}
-
-#sendo{
-max-height: 5vh;
 }

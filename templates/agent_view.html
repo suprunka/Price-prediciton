@@ -7,9 +7,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/agent.css') }}">
-<meta name="viewport" content="initial-scale=1.0, width=device-width" />
-<link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.0/mapsjs-ui.css?dp-version=1549984893" />
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<meta name="viewport" content="initial-scale=1.0, width=device-width"/>
+<link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.0/mapsjs-ui.css?dp-version=1549984893"/>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 <style>
       /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
@@ -45,62 +46,67 @@
  min-height:40px;
  }
 
+
+
+
+
+
+
+
+
+
 </style>
 </head>
 {% extends "layout.html" %}
 
-      {% block content %}
+{% block content %}
 <div class="cont" id="addHouse">
-    <form name="myForm" method="post"  action="/add_house" role="form">
+    <form name="myForm" method="post" action="/add_house" role="form">
         <div class="container">
-            <div class="row">
-                <div class="col-md-3">
-                    Square meters of the home
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <label style="width: 100%; padding: .5em 1em;">Square meters of the home</label>
+                    <input required type="number" style="width: 100%; padding: .5em 1em;" name="sqm_living" min="18"
+                           max="1000000">
                 </div>
-                <div class="col-md-3">
-                    <input required type="number" size="65" name="sqft_living" min="18" max="1000000" >	</div>
-                <div class="col-md-3">
-                    Bedrooms
-                </div>
-                <div class="col-md-3">
-                    <input required type="number" size="65" name="bedrooms" min="0" max="100">	</div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-3">
-                    Square meters of the lot
-                </div>
-                <div class="col-md-3">
-                    <input required type="number" size="65" name="sqft_lot" min="0" max="10000000">
-                </div>
-                <div class="col-md-3">
-                    Bathrooms
-                </div>
-                <div class="col-md-3">
-                    <input required type="number" size="65" name="bathrooms" min="1" max="1000" >
+                <div class="col-md-6">
+                    <label style="width: 100%; padding: .5em 1em;">Bedrooms</label>
+                    <input required type="number" style="width: 100%; padding: .5em 1em;" name="bedrooms" min="0"
+                           max="100">
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-3">
-                    Square meters above of house
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <label style="width: 100%; padding: .5em 1em;">Square meters of the lot</label>
+                    <input required type="number" style="width: 100%; padding: .5em 1em;" name="sqm_lot" min="0"
+                           max="10000000">
                 </div>
-                <div class="col-md-3">
-                    <input required type="number" size="65" name="sqft_above" min="1" max="10000000">
-                </div>
-                <div class="col-md-3">
-                    Square meters of the basement
-                </div>
-                <div class="col-md-3">
-                    <input required type="number" size="65" name="sqft_basement" min="0" max="1000000">
+                <div class="col-md-6">
+                    <label style="width: 100%; padding: .5em 1em;">Bathrooms</label>
+                    <input required type="number" style="width: 100%; padding: .5em 1em;" name="bathrooms" min="1"
+                           max="1000">
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-3">
-                    Built year
+
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <label style="width: 100%; padding: .5em 1em;">Square meters without basement</label>
+                    <input required type="number" style="width: 100%; padding: .5em 1em;" name="sqm_above" min="1"
+                           max="10000000">
                 </div>
-                <div class="col-md-3">
-                    <select name="yr_built">
+                <div class="col-md-6">
+                    <label style="width: 100%; padding: .5em 1em;">Square meters of the basement</label>
+                    <input required type="number" style="width: 100%; padding: .5em 1em;" name="sqm_basement"
+                           min="0"
+                           max="1000000">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <label style="width: 100%; padding: .5em 1em;">Built year</label>
+                    <select style="width: 100%; padding: .5em 1em;" name="yr_built">
                         <option value="2018">2018</option>
                         <option value="2017">2017</option>
                         <option value="2016">2016</option>
@@ -317,11 +323,10 @@
                         <option value="1805">1805</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    Renovation year
-                </div>
-                <div class="col-md-3">
-                    <select name="yr_renovated">
+
+                <div class="col-md-6">
+                    <label style="width: 100%; padding: .5em 1em;">Renovation year</label>
+                    <select style="width: 100%; padding: .5em 1em;" name="yr_renovated">
                         <option value="0">never</option>
                         <option value="2018">2018</option>
                         <option value="2017">2017</option>
@@ -541,88 +546,74 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-3">
-                    Floors
-                </div>
-                <div class="col-md-3">
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <label style="width: 100%; padding: .5em 1em;">Floors</label>
                     <span id="rs-bullet-floor" class="rs-label">0</span>
-                    <input id="rs-range-line-floor" class="rs-range" name="floors" type="range" value=1 type="range" min=1 max=10>
+                    <input required id="rs-range-line-floor" style="width:100%; padding: .5em 1em;" name="floors"
+                           type="range" value=1 min=0 max=10>
                 </div>
-                <div class="col-md-3">
-                    Grade(King County grading system)
-                </div>
-                <div class="col-md-3">
-                    <span id="rs-bullet-grade" class="rs-label">0</span>
-                    <input required id="rs-range-line-grade" name="grade" class="rs-range" type="range" value=1 type="range" min=1 max=10>
+                <div class="col-md-6">
+                    <label style="width: 100%; padding: .5em 1em;">Grade(King County grading system)</label>
+                    <span id="rs-bullet-grade" class="rs-label">1</span>
+                    <input required id="rs-range-line-grade" style="width:100%; padding: .5em 1em;" name="grade"
+                           type="range" value=1 min=1 max=10>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-3">
-                    Overall condition
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <label style="width: 100%; padding: .5em 1em;">Overall condition</label>
+                    <span id="rs-bullet-condition" class="rs-label">1</span>
+                    <input required id="rs-range-line-condition" style="width:100%; padding: .5em 1em;" name="condition"
+                           type="range" value=1 min=1 max=10>
                 </div>
-                <div class="col-md-3">
-                    <span id="rs-bullet-condition" class="rs-label">0</span>
-                    <input required id="rs-range-line-condition" name="condition" class="rs-range" value=1 type="range" min=1 max=12>
-                </div>
-                <div class="col-md-3">
-                    Price
-                </div>
-                <div class="col-md-3">
-                     <input required type="number" name="price"  min="0" max="10000000000">
+                <div class="col-md-6">
+                    <label style="width: 100%; padding: .5em 1em;">Sale date</label>
+                    <input style="width: 100%; padding: .5em 1em;" name='date' type="date" id="date"/>
                 </div>
             </div>
+
 
             <div class="row">
                 <div class="col-md-6">
-                    <input hidden type="text" id="long" step="any" name="long"  />
+                    <input hidden type="text" id="long" step="any" name="long"/>
                 </div>
                 <div class="col-md-6">
-                    <input hidden type="text" id="lat" step="any" name="lat"  />
+                    <input hidden type="text" id="lat" step="any" name="lat"/>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-3">
-                    Zipcode
-                </div>
-                <div class="col-md-3">
-                   <select name="zipcode" id = "zipcode"/>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-3">
-                    Sale date
-                </div>
-                <div class="col-md-3">
-                    <input name='date' type="date" id="date"/>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-3">
-                     Address
-                </div>
-                <div class="col-md-3" >
-                    <input type="text" id="address">
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-3">
-                    <button  type="button" onclick="confirmAddress()" id="sendo" class="btn btn-info "  >Find address</button>
-                </div>
-            </div>
-
-            <div class="row">
+            <div class="form-group row">
                 <div class="col-md-6">
-                    <div id="map" style=" width:300px; height:300px; background: grey" />
+                    <label style="width: 100%; padding: .5em 1em;">Zipcode</label>
+                    <select style="width: 100%; padding: .5em 1em;" name="zipcode" id="zipcode"/>
                 </div>
                 <div class="col-md-6">
-                    <input value="Submit" type="submit" id="sendInfo" class="btn btn-secondary btn-lg" style="color:black;margin-left: 10vw;margin-top: 2vh;width: 55%" />
+                    <label style="width: 100%; padding: .5em 1em;">Price</label>
+                    <input style="width: 100%; padding: .5em 1em;" required type="number" name="price" min="0" max="10000000000">
                 </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <label style="width: 100%; padding: .5em 1em;">Address</label>
+                    <input type="text" style="width:100%; padding: .5em 1em;" id="address">
+                </div>
+                <p></p>
+                <div class="col-md-6">
+                    <button type="button" style="width:100%; padding: .5em 1em;" onclick="confirmAddress()" id="sendo"
+                            class="btn btn-info ">
+                        Find address
+                    </button>
+                    <input value="Submit" type="submit" style="width:100%; padding: .5em 1em;" id="sendInfo"
+                           class="btn btn-secondary btn-lg"
+                           style="color:black"/>
+                </div>
+            </div>
+
+            <div class="col">
+                <div id="map" style=" width:300px; height:300px; background: grey"/>
             </div>
         </div>
     </form>
@@ -631,12 +622,18 @@
 <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-service.js"></script>
 <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-ui.js"></script>
 <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-mapevents.js"></script>
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-<script  type="text/javascript" charset="UTF-8" ></script>
+<script type="text/javascript" charset="UTF-8"></script>
 <script>
 
 
@@ -1560,7 +1557,16 @@ function loadDoc(x,y) {
 // Now use the map as required...
 addDraggableMarker(map, behavior, 47.5, -122.2);
 geocode(platform);
+
+
+
+
+
+
+
+
+
 </script>
-<script  src="{{ url_for('static', filename='js/sliders.js')}}"></script>
-      {% endblock %}
+<script src="{{ url_for('static', filename='js/sliders.js')}}"></script>
+{% endblock %}
 </html>
