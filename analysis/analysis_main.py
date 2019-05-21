@@ -10,14 +10,13 @@ import xgboost as xgb
 import math
 import lightgbm as lgb
 import warnings
-from analysis_helpers import averaged_models, models_gridSearch
+from analysis.analysis_helpers import averaged_models, models_gridSearch
 warnings.filterwarnings('ignore')
 from database.dbConnection import get_data
 
 valueOfSqM = 10.76
 numberOfBins = 4
 divider = 1000
-
 def model_preparation():
     housing_n = get_data()
 
@@ -243,7 +242,7 @@ def calculate_accurancy():
     totalprice = 0
     for i in range(len(houses)):
         price = houses.loc[i,'price']
-        with open("scalerC.pkl", "rb") as infile:
+        with open("../scalerC.pkl", "rb") as infile:
             scaler = pickle.load(infile)
             h = [houses.loc[i, 'sqm_basement'], houses.loc[i, 'sqm_above'], houses.loc[i, 'sqm_lot'],
                  houses.loc[i, 'sqm_living'], houses.loc[i, 'grade'], houses.loc[i, 'yr_built'], houses.loc[i, 'lat'],
