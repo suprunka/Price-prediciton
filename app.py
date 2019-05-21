@@ -163,12 +163,13 @@ def send_token():
         mail = form_value["email"]
         number = form_value["token"]
         result = tokens.give_token(mail, number)
+        number_ = conn.connect_to_tokens().count({"isUsed": False})
         if result is True:
             return render_template('send_token.html', token=tokens.get_token(),
-                                   message="You have successfully sent the token.")
+                                   message="You have successfully sent the token.", tokens=number_)
         else:
             return render_template('send_token.html', token=tokens.get_token(),
-                                   message="The email is already registered or the token is incorrect.")
+                                   message="The email is already registered or the token is incorrect.", tokens=number_)
     else:
         number_ = conn.connect_to_tokens().count({"isUsed": False})
         return render_template('send_token.html', token=tokens.get_token(), tokens=number_)
