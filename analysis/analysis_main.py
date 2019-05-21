@@ -90,7 +90,7 @@ def model_preparation():
     #     scaler = pickle.load(infile)
     #     scaled = scaler.transform(list)
     #       pickle.dump(averaged_models, open('average_model.pkl', 'wb'))
-    pickle.dump(model_xgb, open('./xgb_model.pkl', 'wb'))
+    pickle.dump(model_xgb, open('../xgb_model.pkl', 'wb'))
     #     # pickle.dumps(forest_reg, open('forest_model.pkl', 'wb'))
     #     a = averaged_models.predict(scaled)
     #     # f = forest_reg.predict(scaled)
@@ -173,7 +173,7 @@ def transform_data(data):
 
     scaler = MinMaxScaler()
     data_scaled = scaler.fit_transform(data_deleted_columns)
-    with open("./scaler.pkl", "wb") as outfile:
+    with open("../scaler.pkl", "wb") as outfile:
         pickle.dump(scaler, outfile)
     return data_scaled
 
