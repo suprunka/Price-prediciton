@@ -80,7 +80,7 @@ def model_preparation():
     # forest_reg.fit(housing_prepared, housing_labels)
     # GBoost.fit(housing_prepared,housing_labels)
     model_xgb.fit(housing_prepared, housing_labels)
-    print('gitara Siema zrobiło się')
+
     # model_lgb.fit(housing_prepared, housing_labels)
     # br_reg.fit(housing_prepared, housing_labels)
 
@@ -104,7 +104,7 @@ def model_preparation():
     #     # print(xgb)
     #     # print(lgb)
     #     # print(br)
-
+    print('Prediction model was updated.')
 def convert_to_sqm(housing):
     housing['sqm_living'] = round(housing['sqft_living']/valueOfSqM)
     housing['sqm_lot'] = round(housing['sqft_lot']/valueOfSqM)
@@ -175,6 +175,7 @@ def transform_data(data):
     data_scaled = scaler.fit_transform(data_deleted_columns)
     with open("./scaler.pkl", "wb") as outfile:
         pickle.dump(scaler, outfile)
+    print('Scaler was updated.')
     return data_scaled
 
 def transform_data_for_average_calculation(data):
