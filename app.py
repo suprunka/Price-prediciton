@@ -1,5 +1,4 @@
 import pickle
-
 import atexit
 from flask import Flask, render_template, request, jsonify,redirect
 from database import house as house_db
