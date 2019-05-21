@@ -18,3 +18,4 @@ Scikit-learn==0.20
 datetime==4.3
 xgboost==0.82
 lightgbm==2.2.3	
+flask-apscheduler==1.11.0
