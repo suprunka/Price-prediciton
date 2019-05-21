@@ -164,6 +164,7 @@ def send_token():
         number = form_value["token"]
         result = tokens.give_token(mail, number)
         number_ = conn.connect_to_tokens().count({"isUsed": False})
+
         if result is True:
             return render_template('send_token.html', token=tokens.get_token(),
                                    message="You have successfully sent the token.", tokens=number_)
