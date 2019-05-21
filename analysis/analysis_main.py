@@ -91,7 +91,7 @@ def model_preparation():
     #     scaler = pickle.load(infile)
     #     scaled = scaler.transform(list)
     #       pickle.dump(averaged_models, open('average_model.pkl', 'wb'))
-    pickle.dump(model_xgb, open('../xgb_model.pkl', 'wb'))
+    pickle.dump(model_xgb, open('./xgb_model.pkl', 'wb'))
     #     # pickle.dumps(forest_reg, open('forest_model.pkl', 'wb'))
     #     a = averaged_models.predict(scaled)
     #     # f = forest_reg.predict(scaled)
@@ -174,7 +174,7 @@ def transform_data(data):
 
     scaler = MinMaxScaler()
     data_scaled = scaler.fit_transform(data_deleted_columns)
-    with open("../scaler.pkl", "wb") as outfile:
+    with open("./scaler.pkl", "wb") as outfile:
         pickle.dump(scaler, outfile)
     return data_scaled
 
@@ -243,7 +243,7 @@ def calculate_accurancy():
     totalprice = 0
     for i in range(len(houses)):
         price = houses.loc[i,'price']
-        with open("../scalerC.pkl", "rb") as infile:
+        with open("./scalerC.pkl", "rb") as infile:
             scaler = pickle.load(infile)
             h = [houses.loc[i, 'sqm_basement'], houses.loc[i, 'sqm_above'], houses.loc[i, 'sqm_lot'],
                  houses.loc[i, 'sqm_living'], houses.loc[i, 'grade'], houses.loc[i, 'yr_built'], houses.loc[i, 'lat'],
