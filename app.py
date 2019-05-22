@@ -1,10 +1,10 @@
 import pickle
 import atexit
+import prepare_for_prediction as pred
 from flask import Flask, render_template, request, jsonify, redirect
 from database import house as house_db
 from database import manage as account
 from database import dbConnection as conn
-import prepare_for_prediction as pred
 from database import create_Tokens as tokens
 from analysis.dashboard_diagrams import diagrams
 from analysis import analysis_main
