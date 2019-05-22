@@ -1,6 +1,6 @@
 import pickle
 import atexit
-from flask import Flask, render_template, request, jsonify,redirect
+from flask import Flask, render_template, request, jsonify, redirect
 from database import house as house_db
 from database import manage as account
 from database import dbConnection as conn
@@ -10,8 +10,6 @@ from analysis.dashboard_diagrams import diagrams
 from analysis import analysis_main
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 from apscheduler.schedulers.background import BackgroundScheduler
-
-
 
 with open('xgb_model.pkl', 'rb') as f:
     model = pickle.load(f)
@@ -24,10 +22,8 @@ app.config.update(
     SECRET_KEY=f.read()
 )
 
-
 login = LoginManager()
 login.init_app(app)
-
 
 
 @login.unauthorized_handler
@@ -65,8 +61,7 @@ def init_scheduler():
 
 @app.route('/')
 def main2():
-   return render_template('main.html')
-
+    return render_template('main.html')
 
 
 @app.route('/main')
@@ -95,7 +90,6 @@ def login():
 def logout():
     logout_user()
     return render_template('main.html')
-
 
 
 @app.route('/agent_view')
@@ -181,9 +175,10 @@ def send_token():
 @app.route('/add_tokens', methods=['POST'])
 @login_required
 def add_tokens():
-    result = tokens.insert_1000_tokens()
+    # result = tokens.insert_1000_tokens()
+    result = True
     if result is True:
-        return redirect(send_token)
+        return redirect('send_token')
     else:
         add_tokens()
 
@@ -223,15 +218,15 @@ def delete_account():
         password2 = form_value["passwordCon"]
         token = form_value["token"]
         if password == password2:
-                result_ = account.delete_account(token, password, mail)
-                if result_ is True:
-                    logout_user()
-                    return render_template('login.html',
-                                           result="Your account has been deleted")
-                else:
-                    return render_template('delete_account.html', result="An error while deleting you account")
+            result_ = account.delete_account(token, password, mail)
+            if result_ is True:
+                logout_user()
+                return render_template('login.html',
+                                       result="Your account has been deleted")
+            else:
+                return render_template('delete_account.html', result="An error while deleting you account")
         else:
-            return render_template('delete_account.html', result= "Passwords are not the same")
+            return render_template('delete_account.html', result="Passwords are not the same")
 
     return render_template('delete_account.html')
 
@@ -245,4 +240,3 @@ def statistics():
 
 if __name__ == '__main__':
     app.run()
-

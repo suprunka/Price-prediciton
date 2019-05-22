@@ -3,21 +3,17 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from database import dbConnection
 
-
-
-
-
 housing = dbConnection.get_data()
 housing = housing.convert_objects(convert_numeric=True)
 
 
-
-#Getting rid of outliers
+# Getting rid of outliers
 def get_rid_of_outliers(num_data):
     Q1 = num_data.quantile(0.1)
     Q3 = num_data.quantile(0.9)
     IQR = Q3 - Q1
-    return num_data[~((num_data < (Q1 - 1.5 * IQR)) |(num_data > (Q3 + 1.5 * IQR))).any(axis=1)]
+    return num_data[~((num_data < (Q1 - 1.5 * IQR)) | (num_data > (Q3 + 1.5 * IQR))).any(axis=1)]
+
 
 # sns.boxplot(x=housing['bedrooms'])
 # fig, ax = plt.subplots(figsize=(16,8))
@@ -250,7 +246,7 @@ data_filtered = get_rid_of_outliers(housing)
 # plt.title("Square meters living/Price")
 #
 sns.boxplot(x=data_filtered['sqft_lot'])
-fig, ax = plt.subplots(figsize=(16,8))
+fig, ax = plt.subplots(figsize=(16, 8))
 ax.scatter(data_filtered['sqft_lot'], data_filtered['price'])
 ax.set_xlabel('Square feets of lot of the house')
 ax.set_ylabel('House price')

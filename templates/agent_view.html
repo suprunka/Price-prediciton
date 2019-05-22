@@ -43,6 +43,7 @@
  }
 
 
+
 </style>
 </head>
 {% extends "layout.html" %}
@@ -563,11 +564,9 @@
             </div>
 
 
-
-
             <div class="form-group row">
                 <div class="col-md-6">
-                    <label  style="width: 100%; padding: .5em 1em;">Zipcode</label>
+                    <label style="width: 100%; padding: .5em 1em;">Zipcode</label>
                     <select style="width: 100%; padding: .5em 1em;" name="zipcode" id="zipcode"></select>
                 </div>
                 <div class="col-md-6">
@@ -1546,6 +1545,7 @@ function loadDoc(x,y) {
 // Now use the map as required...
 addDraggableMarker(map, behavior, 47.5, -122.2);
 geocode(platform);
+
 
 
 
