@@ -1,49 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
-    <title>Send token</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    {% extends "layout.html" %}
-    {% block content %}
-        <section >
-            <form id="form_content" action="/send_token" method="post">
-                <h1>Send token to customer</h1>
-                <h5>{{message}}</h5>
-                {% if result== 'error'%}<p style="color: #faf8ff">Can't find your mail or token.</p>
+<title>Send token</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+{% extends "layout.html" %}
+{% block content %}
+<section>
+    <div class="container">
+        <h2 class="text-center">Send token to a customer</h2>
+        <form action="/send_token" id='send_token_form' method="post">
+            <div class="form-group">
+                <p class="text-danger">{{message}}</p>
+                <small class="text-muted">Email</small>
+                <input type="email" class="form-control" id="email" placeholder="Enter email..." required name="email">
+            </div>
+
+            <div class="form-group">
+                <small class="text-muted">Token</small>
+                <small class="text-muted">{{ token }}</small>
+                <input type="hidden" id="token" class="btn btn-outline-dark" name="token" value={{token}}
+                       form="send_token_form"/>
+                <input type="submit" id="sub_btn" class="btn btn-outline-dark" value="Send token"/>
+            </div>
+        </form>
+        <div class="form-group">
+            <form action="/add_tokens" method="post">
+                <small class="text-muted">Number of left tokens:</small>
+                <small class="text-muted">{{ tokens }}</small>
+                {% if tokens > 100 %}
+                <input type="submit" id="sub_btn2" class="btn btn-outline-dark" value="Add 1000 tokens"/>
                 {% endif %}
-                <input type="text" placeholder="Customer mail" required name="email" id="mail" />
-                <p></p>
-                <label> Token </label>
-                <label >{{ token }}</label>
-                <p></p>
-                <input type="hidden" id="token" name="token" value={{token}} form="form_content"/>
-                <p></p>
-                <input type="submit" id="sub_btn" class="btn btn-outline-info" value="Send token"/>
-                <p></p>
-                </form>
-                <label> Number of left tokens: </label>
-                <label >{{ tokens }}</label>
-                <p></p>
-                <form action="/add_tokens" method="post">
-                    {% if tokens < 100 %} <input type="submit" id="sub_btn2" class="btn btn-outline-info"
-                                            value="Add 1000 tokens"/>
-                    {% endif %}
-                </form>
-        </section>
-        <script type="text/javascript"></script>
-        <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-core.js"></script>
-        <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-service.js"></script>
-        <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-ui.js"></script>
-        <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-mapevents.js"></script>
-        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-    {%endblock%}
+            </form>
+        </div>
+    </div>
+</section>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+{%endblock%}
 </html>

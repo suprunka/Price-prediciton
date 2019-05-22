@@ -35,7 +35,8 @@ def change_password(email, token, new_password):
     connection = connect_to_users()
     result = connection.find_one({'token.token': int(token), 'email': email})
     if result is not None:
-        changed = connection.update_one({'token.token': int(token), 'email': email}, {'$set': {'password': hash_password(new_password)}})
+        changed = connection.update_one({'token.token': int(token), 'email': email},
+                                        {'$set': {'password': hash_password(new_password)}})
         if changed.modified_count == 1:
             msg = 'Your password has been changed to ' + new_password
             send_mail(email, msg)
@@ -79,7 +80,7 @@ def hash_password(password):
     salt = hashlib.sha256(os.urandom(60)).hexdigest().encode('ascii')
     pwdhash = hashlib.pbkdf2_hmac('sha512', password.encode('utf-8'), salt, 100000)
     pwdhash = binascii.hexlify(pwdhash)
-    return (salt+pwdhash).decode('ascii')
+    return (salt + pwdhash).decode('ascii')
 
 
 def log_in(email, password):
