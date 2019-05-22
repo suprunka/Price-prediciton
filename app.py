@@ -175,8 +175,7 @@ def send_token():
 @app.route('/add_tokens', methods=['POST'])
 @login_required
 def add_tokens():
-    # result = tokens.insert_1000_tokens()
-    result = True
+    result = tokens.insert_1000_tokens()
     if result is True:
         return redirect('send_token')
     else:
