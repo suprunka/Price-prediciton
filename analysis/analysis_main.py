@@ -2,25 +2,23 @@ import numpy as np
 import pandas as pd
 import pickle
 import datetime
+import math
+import lightgbm as lgb
+import xgboost as xgb
 from analysis_helpers.averaged_models import StackingAveragedModels
 from analysis_helpers.models_gridSearch import gridSearchCV
 from sklearn.model_selection import StratifiedShuffleSplit, cross_val_score
 from sklearn.preprocessing import StandardScaler, Normalizer, PowerTransformer, MinMaxScaler
 from sklearn.metrics import r2_score, mean_absolute_error
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-import xgboost as xgb
 from sklearn.neighbors import KNeighborsRegressor
-
-import math
-import lightgbm as lgb
-import warnings
 from analysis.analysis_helpers import averaged_models, models_gridSearch
-warnings.filterwarnings('ignore')
 from database.dbConnection import get_data
 
 valueOfSqM = 10.76
 numberOfBins = 4
 divider = 1000
+
 def model_preparation():
     housing_n = get_data()
     housing_n['floors'] = housing_n['floors'].str[1:-1]
@@ -49,11 +47,8 @@ def model_preparation():
         set_.drop("price_cat", axis=1, inplace=True)
 
     housing = strat_train_set.copy()
-    # w = strat_test_set.copy()
     housing_prepared = transform_data(housing)
     housing_labels = get_labels(housing)
-    # test_X = transform_data(w)
-    # test_y = get_labels(w)
 
     # Picking most promising models
     forest_reg = RandomForestRegressor(n_jobs=-1, min_weight_fraction_leaf=0., n_estimators=100, min_samples_split=16,
@@ -73,16 +68,10 @@ def model_preparation():
                                   min_data_in_leaf=6, min_sum_hessian_in_leaf=11)
 
     knn = KNeighborsRegressor(n_neighbors=8)
-
-    # models = [forest_reg, GBoost, model_xgb,  model_lgb, br_reg]
-    # averaged_models = averaged_models.StackingAveragedModels(base_models=(model_xgb, br_reg),
-    #                                                          meta_model =forest_reg)
-    # averaged_models.fit(housing_prepared, housing_labels)
-    # forest_reg.fit(housing_prepared, housing_labels)
-    # GBoost.fit(housing_prepared,housing_labels)
     model_xgb.fit(housing_prepared, housing_labels)
     pickle.dump(model_xgb, open('./xgb_model.pkl', 'wb'))
     print('Prediction model was updated.')
+
 
 def convert_to_sqm(housing):
     housing['sqm_living'] = round(housing['sqft_living']/valueOfSqM)
@@ -91,6 +80,7 @@ def convert_to_sqm(housing):
     housing['sqm_basement'] = round(housing['sqft_basement']/valueOfSqM)
     housing = housing.drop(["sqft_living", "sqft_lot", "sqft_above", "sqft_basement"], axis=1)
     return housing
+
 
 def create_bins(maximum, minimum):
     x = [maximum+1]
@@ -103,11 +93,13 @@ def create_bins(maximum, minimum):
     x.sort()
     return x
 
+
 def get_rid_of_outliers(num_data):
     Q1 = num_data.quantile(0.1)
     Q3 = num_data.quantile(0.9)
     IQR = Q3 - Q1
     return num_data[~((num_data < (Q1 - 1.5 * IQR)) | (num_data > (Q3 + 1.5 * IQR))).any(axis=1)]
+
 
 def add_additional_attributes(data):
     data['floors'] = data['floors'].astype(float)
@@ -134,6 +126,7 @@ def add_additional_attributes(data):
     data['binned_age'] = 0
     data['binned_age'] = np.where(train_set['binned_age'].between(4, 9), 1, data['binned_age'])
     return data
+
 
 def transform_data(data):
     data_additional_attributes = add_additional_attributes(data)
@@ -181,24 +174,23 @@ def checkAllModels(models_list,housing_prepared,housing_labels,strat_test_set,  
 
 
 
-#Check models
-# checkAllModels(model_xgb, alone=True)
+    #Check models
+    # checkAllModels(model_xgb, alone=True)
 
 
-#Calculate accurancy
-# calculate_accurancy()
+    #Calculate accurancy
+    # calculate_accurancy()
 
-#Grid search
-# models_gridSearch.gridSearchCV(housing_prepared, housing_labels)
+    #Grid search
+    # models_gridSearch.gridSearchCV(housing_prepared, housing_labels)
 
 
-# with open("scaler.pkl", "rb") as infile:
-#     scaler = pickle.load(infile)
-#     scaled1 = scaler.transform(list1)
-#     scaled2 = scaler.transform(list2)
-#     # print(cross_val_score(model_xgb, scaled, test_y).mean() * 100)
-#     with open("xgb_model.pkl", "rb") as model__:
-#          model = pickle.load(model__)
-#          print(model.predict(scaled1))
-#          print(model.predict(scaled2))
-
+    # with open("scaler.pkl", "rb") as infile:
+    #     scaler = pickle.load(infile)
+    #     scaled1 = scaler.transform(list1)
+    #     scaled2 = scaler.transform(list2)
+    #     # print(cross_val_score(model_xgb, scaled, test_y).mean() * 100)
+    #     with open("xgb_model.pkl", "rb") as model__:
+    #          model = pickle.load(model__)
+    #          print(model.predict(scaled1))
+    #          print(model.predict(scaled2))
