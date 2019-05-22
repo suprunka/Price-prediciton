@@ -165,6 +165,7 @@ def display_scores(scores, model):
     print("Standard deviation:", scores.std())
     print('')
 
+
 def checkAllModels(models_list,housing_prepared,housing_labels,strat_test_set,  alone=False):
     w = strat_test_set.copy()
     test_X = transform_data(w)
