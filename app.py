@@ -1,5 +1,4 @@
 import pickle
-import os
 import atexit
 from flask import Flask, render_template, request, jsonify,redirect
 from database import house as house_db
@@ -12,14 +11,19 @@ from analysis import analysis_main
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 from apscheduler.schedulers.background import BackgroundScheduler
 
+
+
 with open('xgb_model.pkl', 'rb') as f:
     model = pickle.load(f)
 
 app = Flask(__name__)
 app.static_folder = 'static'
+
+f = open('secret.txt', 'r')
 app.config.update(
-    SECRET_KEY='sdf'
+    SECRET_KEY=f.read()
 )
+
 
 login = LoginManager()
 login.init_app(app)
@@ -54,7 +58,7 @@ def load_user(user_id):
 @app.before_first_request
 def init_scheduler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(analysis_main.model_preparation, 'interval', hours=24, start_date='2019-05-19 17:04:00')
+    scheduler.add_job(analysis_main.model_preparation, 'interval', hours=24, start_date='2019-05-19 23:55:00')
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
 
@@ -138,7 +142,6 @@ def change_password():
 
 
 @app.route('/reset_password', methods=['GET', 'POST'])
-@login_required
 def reset_password():
     if request.method == 'POST':
         form_value = request.form
@@ -162,12 +165,14 @@ def send_token():
         mail = form_value["email"]
         number = form_value["token"]
         result = tokens.give_token(mail, number)
+        number_ = conn.connect_to_tokens().count({"isUsed": False})
+
         if result is True:
             return render_template('send_token.html', token=tokens.get_token(),
-                                   message="You have successfully sent the token.")
+                                   message="You have successfully sent the token.", tokens=number_)
         else:
             return render_template('send_token.html', token=tokens.get_token(),
-                                   message="The email is already registered or the token is incorrect.")
+                                   message="The email is already registered or the token is incorrect.", tokens=number_)
     else:
         number_ = conn.connect_to_tokens().count({"isUsed": False})
         return render_template('send_token.html', token=tokens.get_token(), tokens=number_)

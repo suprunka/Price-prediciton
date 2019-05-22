@@ -1,13 +1,7 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
 import datetime
-from database import dbConnection as db
 import pickle
-
-
-def get_data_fromdb():
-    return db.get_data()
 
 
 def prepare_data(sent_data):
