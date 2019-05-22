@@ -2,11 +2,16 @@ import numpy as np
 import pandas as pd
 import pickle
 import datetime
+from analysis_helpers.averaged_models import StackingAveragedModels
+from analysis_helpers.models_gridSearch import gridSearchCV
 from sklearn.model_selection import StratifiedShuffleSplit, cross_val_score
 from sklearn.preprocessing import StandardScaler, Normalizer, PowerTransformer, MinMaxScaler
 from sklearn.metrics import r2_score, mean_absolute_error
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, BaggingRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.linear_model import LinearRegression
 import xgboost as xgb
+from sklearn.neighbors import KNeighborsRegressor
+
 import math
 import lightgbm as lgb
 import warnings
@@ -47,11 +52,10 @@ def model_preparation():
         set_.drop("price_cat", axis=1, inplace=True)
 
     housing = strat_train_set.copy()
-    # w = strat_test_set.copy()
     housing_prepared = transform_data(housing)
     housing_labels = get_labels(housing)
-    # test_X = transform_data(w)
-    # test_y = get_labels(w)
+
+
 
     # Picking most promising models
     forest_reg = RandomForestRegressor(n_jobs=-1, min_weight_fraction_leaf=0., n_estimators=100, min_samples_split=16,
@@ -70,15 +74,21 @@ def model_preparation():
                                   feature_fraction_seed=9, bagging_seed=9,
                                   min_data_in_leaf=6, min_sum_hessian_in_leaf=11)
 
-    br_reg = BaggingRegressor(warm_start=False, n_jobs=5, n_estimators=50, bootstrap_features=True,
-                              bootstrap=False)
+    knn = KNeighborsRegressor(n_neighbors=8)
 
     # models = [forest_reg, GBoost, model_xgb,  model_lgb, br_reg]
-    # averaged_models = averaged_models.StackingAveragedModels(base_models=(model_xgb, br_reg),
-    #                                                          meta_model =forest_reg)
-    # averaged_models.fit(housing_prepared, housing_labels)
+    # averaged_model = averaged_models.StackingAveragedModels(base_models=(forest_reg, GBoost,knn ,model_lgb), meta_model =model_xgb)
+    # averaged_model.fit(housing_prepared, housing_labels)
     # forest_reg.fit(housing_prepared, housing_labels)
     # GBoost.fit(housing_prepared,housing_labels)
+    # avg = StackingAveragedModels(base_models= [],meta_model=  )
+    # avg.fit(housing_prepared, housing_labels)
+    w = strat_test_set.copy()
+    test_X = transform_data(w)
+    test_y = get_labels(w)
+    # s = cross_val_score(averaged_model, housing_prepared, housing_labels)
+    # display_scores(s, models_list.__class__.__name__)
+    checkAllModels([forest_reg, GBoost,knn ,model_xgb,model_lgb],housing_prepared, housing_labels, strat_test_set)
     model_xgb.fit(housing_prepared, housing_labels)
     print('gitara Siema zrobiło się')
     # model_lgb.fit(housing_prepared, housing_labels)
@@ -217,21 +227,19 @@ def display_scores(scores, model):
     print("Standard deviation:", scores.std())
     print('')
 
-def checkAllModels(models_list, alone=False):
-    scores_for_plot_test = []
+def checkAllModels(models_list,housing_prepared,housing_labels,strat_test_set,  alone=False):
+    w = strat_test_set.copy()
+    test_X = transform_data(w)
+    test_y = get_labels(w)
     if not alone:
         for model in models_list:
             model.fit(housing_prepared, housing_labels)
-            print("R2")
-            display_scores(r2_score(test_y, model.predict(test_X)),  model.__class__.__name__)
-            print("Mean absolute error")
-            display_scores(mean_absolute_error(test_y, model.predict(test_X)), model.__class__.__name__)
+            display_scores(cross_val_score(model, test_X, test_y),  model.__class__.__name__)
+
     else:
         models_list.fit(housing_prepared, housing_labels)
-        print("R2")
-        display_scores(r2_score(test_y, models_list.predict(test_X)), models_list.__class__.__name__)
-        print("Mean absolute error")
-        display_scores(mean_absolute_error(test_y, models_list.predict(test_X)), models_list.__class__.__name__)
+        display_scores(cross_val_score(models_list, test_X, test_y), models_list.__class__.__name__)
+
 
 def calculate_accurancy():
     houses = strat_test_set.copy()
@@ -275,7 +283,7 @@ def calculate_accurancy():
 #Grid search
 # models_gridSearch.gridSearchCV(housing_prepared, housing_labels)
 
-
+#
 # with open("scaler.pkl", "rb") as infile:
 #     scaler = pickle.load(infile)
 #     scaled1 = scaler.transform(list1)
@@ -286,3 +294,4 @@ def calculate_accurancy():
 #          print(model.predict(scaled1))
 #          print(model.predict(scaled2))
 
+model_preparation()

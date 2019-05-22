@@ -110,3 +110,4 @@ def gridSearchCV(X, Y):
         gs = RandomizedSearchCV(pips[i], pars[i], verbose=2, refit=False, n_jobs=-1)
         gs = gs.fit(X, Y)
         print("Best parameters of: ", i.__class__ , " ", gs.best_params_)
+
