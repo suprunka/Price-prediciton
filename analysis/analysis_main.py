@@ -169,26 +169,3 @@ def checkAllModels(models_list,housing_prepared,housing_labels,strat_test_set,  
     else:
         models_list.fit(housing_prepared, housing_labels)
         display_scores(cross_val_score(models_list, test_X, test_y), models_list.__class__.__name__)
-
-
-
-    #Check models
-    # checkAllModels(model_xgb, alone=True)
-
-
-    #Calculate accurancy
-    # calculate_accurancy()
-
-    #Grid search
-    # models_gridSearch.gridSearchCV(housing_prepared, housing_labels)
-
-
-    # with open("scaler.pkl", "rb") as infile:
-    #     scaler = pickle.load(infile)
-    #     scaled1 = scaler.transform(list1)
-    #     scaled2 = scaler.transform(list2)
-    #     # print(cross_val_score(model_xgb, scaled, test_y).mean() * 100)
-    #     with open("xgb_model.pkl", "rb") as model__:
-    #          model = pickle.load(model__)
-    #          print(model.predict(scaled1))
-    #          print(model.predict(scaled2))

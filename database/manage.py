@@ -6,17 +6,16 @@ import random
 
 
 def register(email, password, token):
-    the_result = True
+    the_result = False
     the_token = connect_to_tokens().find_one({'token': int(token)})
-    if the_token is not None:
+    if the_token is not None and connect_to_users().find_one({"token.token": int(token)}) is None:
         result = connect_to_users().insert_one({'email': email, 'token': the_token,
                                                 'password': hash_password(password),
                                                 'is_admin': False})
-        if result is None:
-            the_result = False
-        else:
+        if result is not None:
             msg = 'Your account has been created.'
             send_mail(email, msg)
+            the_result = True
     return the_result
 
 

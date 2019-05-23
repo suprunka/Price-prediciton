@@ -50,12 +50,12 @@
 
 {% block content %}
 <div class="cont" id="addHouse">
-    <form name="myForm" method="post" action="/add_house" role="form">
+    <form name="myForm" method="post" action="/add_house" role="form" style="padding-top: 80px;">
         <div class="container">
             <div class="form-group row">
                 <div class="col-md-6">
                     <label style="width: 100%; padding: .5em 1em;">Square meters of the home</label>
-                    <input required type="number" style="width: 100%; padding: .5em 1em;" name="sqm_living" min="18"
+                    <input required type="number" style="width: 100%; padding: .5em 1em;" name="sqft_living" min="18"
                            max="1000000">
                 </div>
                 <div class="col-md-6">
@@ -68,7 +68,7 @@
             <div class="form-group row">
                 <div class="col-md-6">
                     <label style="width: 100%; padding: .5em 1em;">Square meters of the lot</label>
-                    <input required type="number" style="width: 100%; padding: .5em 1em;" name="sqm_lot" min="0"
+                    <input required type="number" style="width: 100%; padding: .5em 1em;" name="sqft_lot" min="0"
                            max="10000000">
                 </div>
                 <div class="col-md-6">
@@ -81,12 +81,12 @@
             <div class="form-group row">
                 <div class="col-md-6">
                     <label style="width: 100%; padding: .5em 1em;">Square meters without basement</label>
-                    <input required type="number" style="width: 100%; padding: .5em 1em;" name="sqm_above" min="1"
+                    <input required type="number" style="width: 100%; padding: .5em 1em;" name="sqft_above" min="1"
                            max="10000000">
                 </div>
                 <div class="col-md-6">
                     <label style="width: 100%; padding: .5em 1em;">Square meters of the basement</label>
-                    <input required type="number" style="width: 100%; padding: .5em 1em;" name="sqm_basement"
+                    <input required type="number" style="width: 100%; padding: .5em 1em;" name="sqft_basement"
                            min="0"
                            max="1000000">
                 </div>
@@ -538,9 +538,9 @@
             <div class="form-group row">
                 <div class="col-md-6">
                     <label style="width: 100%; padding: .5em 1em;">Floors</label>
-                    <span id="rs-bullet-floor" class="rs-label">0</span>
+                    <span id="rs-bullet-floor" class="rs-label">1</span>
                     <input required id="rs-range-line-floor" style="width:100%; padding: .5em 1em;" name="floors"
-                           type="range" value=1 min=0 max=10>
+                           type="range" value=1 min=1 max=10>
                 </div>
                 <div class="col-md-6">
                     <label style="width: 100%; padding: .5em 1em;">Grade(King County grading system)</label>

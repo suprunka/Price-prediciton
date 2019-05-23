@@ -16,14 +16,22 @@
 {% block content %}
 <div class="container" style="font-size: 14px;">
 
-    <div class="row">
+    <div class="row" style="padding-top: 85px;">
         <div class="col-md-8">
             <table class="table table-dark">
                 {% for key, value in result.items() %}
+
+                {% if "sqft" in key %}
+                <tr>
+                    <th> {{key|string|replace("sqft_","sqm_")}}</th>
+                    <td> {{ value }}</td>
+                </tr>
+                {%else%}
                 <tr>
                     <th> {{ key }}</th>
                     <td> {{ value }}</td>
                 </tr>
+                {% endif %}
                 {% endfor %}
             </table>
 
