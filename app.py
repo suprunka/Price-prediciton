@@ -46,6 +46,7 @@ class User(UserMixin):
         return account.get_user_by_id(self.id)
 
 
+
 @login.user_loader
 def load_user(user_id):
     return User(user_id)
