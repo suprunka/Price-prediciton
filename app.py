@@ -122,7 +122,7 @@ def change_password():
         if password == password2:
             user = account.connect_to_users().find_one({"email": mail})
             is_the_same = account.check_password(password, user['password'])
-            if not is_the_same and:
+            if not is_the_same:
                 if account.change_password(email=mail, token=token, new_password=password) is True:
                     logout_user()
                     return render_template('login.html', result="Use new password to log in.")
