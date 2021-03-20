@@ -8,7 +8,7 @@ Flask-WTF==0.14.2
 Flask-LoginManager==1.1.6
 Flask-Login==0.4.1
 gunicorn==19.7.1
-Jinja2==2.8.1
+Jinja2==2.11.3
 numpy==1.16.0
 pymongo==3.5.1
 jsonlib-python3==1.6.1
